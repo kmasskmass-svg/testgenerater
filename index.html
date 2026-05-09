@@ -30,7 +30,7 @@
             min-height: 297mm;
             width: 210mm;
             margin: 0 auto;
-            padding: 15mm 10mm; /* تم تقليل الهوامش الجانبية لزيادة عرض الورقة */
+            padding: 15mm 10mm; 
             box-sizing: border-box;
             position: relative;
             box-shadow: 0 0 20px rgba(0,0,0,0.05);
@@ -56,6 +56,57 @@
         .section-title::after { content: ''; position: absolute; right: 0; top: 15%; height: 70%; width: 4px; background: var(--primary); border-radius: 2px; }
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        
+        #textContent {
+            min-height: 400px;
+            max-height: 600px;
+            overflow-y: auto;
+            background-color: #f8fafc;
+        }
+        #textContent:empty:before {
+            content: attr(placeholder);
+            color: #94a3b8;
+            pointer-events: none;
+            display: block;
+            white-space: pre-wrap;
+        }
+        #textContent table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+            background-color: #fff;
+        }
+        #textContent table, #textContent th, #textContent td {
+            border: 1px solid #cbd5e1;
+        }
+        #textContent th, #textContent td {
+            padding: 8px;
+            min-width: 50px;
+        }
+        #textContent img {
+            max-width: 100%;
+            max-height: 300px;
+            display: inline-block;
+            margin: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        #paper-content table td, #paper-content table th {
+            border: 1px solid #000 !important;
+            padding: 8px;
+        }
+        #paper-content table.header-table td, #paper-content table.header-table th {
+            border: none !important;
+            padding: 0 !important;
+        }
+
+        /* كلاس خاص لحماية الأقواس من الانعكاس */
+        .bracket-fix {
+            display: inline-block;
+            direction: ltr !important;
+            unicode-bidi: isolate;
+        }
     </style>
 </head>
 <body class="p-4 md:p-6 custom-scrollbar">
@@ -84,21 +135,49 @@
         <div id="controlPanel" class="max-w-4xl mx-auto space-y-6 no-print transition-all duration-500">
             
             <div class="glass-card p-5 rounded-2xl shadow-sm space-y-4">
-                <h2 class="font-bold text-slate-700 flex items-center gap-2 section-title">
+                <h2 class="font-bold text-slate-700 flex items-center gap-2 section-title mb-2">
                     <i class="fa-solid fa-paste text-blue-600"></i> أسئلة الاختبار
                 </h2>
-                <div id="dropZone" class="border-2 border-dashed border-blue-200 rounded-xl p-4 text-center cursor-pointer hover:bg-blue-50 transition-all">
-                    <i class="fa-solid fa-file-word text-2xl text-blue-300 mb-1"></i>
-                    <p class="text-[11px] font-medium text-slate-600">رفع ملف Word أو PDF أو TXT</p>
+                
+                <div class="flex flex-wrap gap-2 mb-1 border-b border-slate-100 pb-3">
+                    <button onclick="insertImage()" class="bg-slate-100 text-slate-700 border border-slate-200 px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-2 shadow-sm">
+                        <i class="fa-solid fa-image"></i> إدراج صورة
+                    </button>
+                    <button onclick="insertTable()" class="bg-slate-100 text-slate-700 border border-slate-200 px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-50 hover:text-blue-600 transition-colors flex items-center gap-2 shadow-sm">
+                        <i class="fa-solid fa-table"></i> إدراج جدول
+                    </button>
+                    
+                    <div class="hidden sm:block border-r-2 border-slate-200 mx-1"></div>
+                    
+                    <button onclick="insertTemplate('mcq')" class="bg-indigo-50 text-indigo-700 border border-indigo-100 px-3 py-2 rounded-lg text-xs font-bold hover:bg-indigo-100 transition-colors flex items-center gap-1 shadow-sm" title="نموذج خيارات">
+                        <i class="fa-solid fa-list-check"></i> خيارات
+                    </button>
+                    <button onclick="insertTemplate('tf')" class="bg-indigo-50 text-indigo-700 border border-indigo-100 px-3 py-2 rounded-lg text-xs font-bold hover:bg-indigo-100 transition-colors flex items-center gap-1 shadow-sm" title="نموذج صح وخطأ">
+                        <i class="fa-solid fa-check-double"></i> صح/خطأ
+                    </button>
+                    <button onclick="insertTemplate('match')" class="bg-indigo-50 text-indigo-700 border border-indigo-100 px-3 py-2 rounded-lg text-xs font-bold hover:bg-indigo-100 transition-colors flex items-center gap-1 shadow-sm" title="نموذج توصيل">
+                        <i class="fa-solid fa-arrows-turn-to-dots"></i> توصيل
+                    </button>
+                    <button onclick="insertTemplate('essay')" class="bg-indigo-50 text-indigo-700 border border-indigo-100 px-3 py-2 rounded-lg text-xs font-bold hover:bg-indigo-100 transition-colors flex items-center gap-1 shadow-sm" title="نموذج مقالي">
+                        <i class="fa-solid fa-pen-clip"></i> مقالي
+                    </button>
+
+                    <input type="file" id="inlineImageInput" accept="image/*" class="hidden" onchange="handleInlineImage(event)">
+                </div>
+
+                <div id="textContent" contenteditable="true" class="w-full p-5 text-sm border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 leading-loose custom-scrollbar" placeholder="الصق أسئلتك هنا أو استخدم أزرار النماذج العلوية..."></div>
+                <div id="uploadStatus" class="text-xs text-center hidden"></div>
+                
+                <div id="dropZone" class="border-2 border-dashed border-blue-200 rounded-xl p-3 text-center cursor-pointer hover:bg-blue-50 transition-all mt-2">
+                    <i class="fa-solid fa-file-word text-lg text-blue-300 mb-1"></i>
+                    <p class="text-[11px] font-medium text-slate-600">أو يمكنك رفع ملف Word / PDF لاستخراج نصه تلقائياً</p>
                     <input type="file" id="fileInput" accept=".pdf,.docx,.txt" class="hidden">
                 </div>
-                <textarea id="textContent" rows="18" class="w-full p-5 text-sm bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 resize-y leading-loose" placeholder="الصق أسئلتك هنا... &#10;&#10;💡 أفضل صيغة ليفهمها النظام ويقوم بترتيبها:&#10;السؤال الأول: اختر الإجابة الصحيحة&#10;1- ما هي عاصمة السعودية؟&#10;أ- الرياض   ب- جدة   ج- مكة   د- الدمام&#10;&#10;2- كم عدد القارات؟&#10;أ- 5&#10;ب- 6&#10;ج- 7"></textarea>
-                <div id="uploadStatus" class="text-xs text-center hidden"></div>
             </div>
 
             <div class="glass-card p-5 rounded-2xl shadow-sm space-y-4">
                 <button id="toggleHeaderBtn" class="w-full flex justify-between items-center text-slate-700 font-bold text-sm">
-                    <span class="flex items-center gap-2 section-title">إعدادات الترويسة والشعار</span>
+                    <span class="flex items-center gap-2 section-title">إعدادات الترويسة والتذييل</span>
                     <i class="fa-solid fa-chevron-down text-[10px]"></i>
                 </button>
                 <div id="headerSettings" class="space-y-3 pt-2">
@@ -120,8 +199,16 @@
                         <input type="text" id="hSection" value="الشعبة: .........." placeholder="الشعبة" class="p-2 text-[10px] bg-slate-50 border rounded-lg">
                     </div>
 
-                    <div class="p-2 border rounded-xl bg-slate-50 text-center flex flex-col items-center gap-2">
-                        <img id="logoPreviewImg" src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Ministry_of_Education_Saudi_Arabia.svg/200px-Ministry_of_Education_Saudi_Arabia.svg.png" class="h-10 object-contain" alt="الشعار">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 border-t pt-3 mt-1 border-slate-100 bg-slate-50 p-3 rounded-lg">
+                        <label class="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
+                            <input type="checkbox" id="showFooterSettings" checked class="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+                            إضافة (انتهت الأسئلة) وتوقيع المعلم
+                        </label>
+                        <input type="text" id="hTeacherName" value="" placeholder="اسم المعلم / المدرب" class="p-2 text-xs bg-white border border-slate-200 rounded-lg w-full">
+                    </div>
+
+                    <div class="p-2 border rounded-xl bg-slate-50 text-center flex flex-col items-center gap-2 mt-2">
+                        <img id="logoPreviewImg" src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Ministry_of_Education_Saudi_Archive.svg/200px-Ministry_of_Education_Saudi_Arabia.svg.png" class="h-10 object-contain" alt="الشعار">
                         <input type="file" id="logoInput" accept="image/*" class="hidden">
                         <div class="flex gap-3">
                             <button onclick="document.getElementById('logoInput').click()" class="text-[11px] font-bold text-blue-600 underline">تغيير الشعار</button>
@@ -137,7 +224,7 @@
             </button>
         </div>
 
-        <!-- Preview Area (الشاشة الثانية للمعاينة) -->
+        <!-- Preview Area -->
         <div id="previewArea" class="hidden max-w-5xl mx-auto flex-col transition-all duration-500 w-full">
             <div id="toolbar" class="glass-card p-4 rounded-2xl mb-5 flex justify-between items-center no-print flex-wrap gap-4">
                 <div class="flex items-center gap-3">
@@ -147,7 +234,7 @@
                     <span class="text-sm font-bold text-slate-600 border-r-2 border-slate-200 pr-3">معاينة الورقة</span>
                 </div>
                 <div class="flex gap-2">
-                    <button id="saveLibBtn" onclick="saveToLibrary()" class="bg-emerald-50 text-emerald-600 px-3 py-2 rounded-xl text-xs font-bold border border-emerald-100 hover:bg-emerald-100"><i class="fa-solid fa-bookmark"></i> حفظ محلي</button>
+                    <button onclick="saveToLibrary()" class="bg-emerald-50 text-emerald-600 px-3 py-2 rounded-xl text-xs font-bold border border-emerald-100 hover:bg-emerald-100"><i class="fa-solid fa-bookmark"></i> حفظ محلي</button>
                     <button onclick="exportPDF()" class="bg-rose-50 text-rose-600 px-3 py-2 rounded-xl text-xs font-bold border border-rose-100 hover:bg-rose-100"><i class="fa-solid fa-file-pdf"></i> PDF</button>
                     <button onclick="exportWord()" class="bg-blue-50 text-blue-600 px-3 py-2 rounded-xl text-xs font-bold border border-blue-100 hover:bg-blue-100"><i class="fa-solid fa-file-word"></i> Word</button>
                 </div>
@@ -160,14 +247,12 @@
                 <div id="placeholder" class="flex flex-col items-center justify-center text-slate-400 py-32 text-center">
                     <i class="fa-solid fa-file-lines text-8xl opacity-10 mb-6"></i>
                     <h3 class="text-lg font-bold text-slate-500">الورقة جاهزة للتنسيق</h3>
-                    <p class="text-xs mt-2">قم بلصق الأسئلة واضغط على "تنسيق وترتيب"</p>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal التنبيهات -->
 <div id="alertModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl text-center">
         <h4 id="modalTitle" class="text-lg font-bold mb-2"></h4>
@@ -176,15 +261,32 @@
     </div>
 </div>
 
-<!-- Modal المكتبة -->
 <div id="libraryModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[80vh] flex flex-col shadow-2xl overflow-hidden">
         <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-indigo-50">
-            <h3 class="font-bold text-indigo-900 flex items-center gap-2"><i class="fa-solid fa-book-bookmark text-indigo-600"></i> مكتبتي (محفوظة في المتصفح)</h3>
+            <h3 class="font-bold text-indigo-900 flex items-center gap-2"><i class="fa-solid fa-book-bookmark text-indigo-600"></i> مكتبتي</h3>
             <button onclick="document.getElementById('libraryModal').classList.add('hidden')" class="text-slate-400 hover:text-rose-500"><i class="fa-solid fa-xmark text-xl"></i></button>
         </div>
-        <div id="libraryContent" class="p-5 flex-1 overflow-y-auto space-y-3 custom-scrollbar bg-slate-50">
-            <!-- سيتم تحميل المحتوى المحفوظ هنا -->
+        <div id="libraryContent" class="p-5 flex-1 overflow-y-auto space-y-3 custom-scrollbar bg-slate-50"></div>
+    </div>
+</div>
+
+<div id="tableModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl">
+        <h3 class="font-bold text-slate-800 text-lg mb-4 flex items-center gap-2"><i class="fa-solid fa-table text-blue-600"></i> إدراج جدول</h3>
+        <div class="space-y-4">
+            <div>
+                <label class="text-xs font-bold text-slate-600 mb-1 block">عدد الصفوف</label>
+                <input type="number" id="tblRows" value="4" min="1" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-center">
+            </div>
+            <div>
+                <label class="text-xs font-bold text-slate-600 mb-1 block">عدد الأعمدة</label>
+                <input type="number" id="tblCols" value="3" min="1" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-center">
+            </div>
+            <div class="flex gap-2 pt-2">
+                <button onclick="confirmInsertTable()" class="flex-1 bg-blue-600 text-white py-2.5 rounded-xl font-bold">إدراج الآن</button>
+                <button onclick="document.getElementById('tableModal').classList.add('hidden')" class="flex-1 bg-slate-100 text-slate-600 py-2.5 rounded-xl font-bold">إلغاء</button>
+            </div>
         </div>
     </div>
 </div>
@@ -192,7 +294,6 @@
 <script>
     const DEFAULT_LOGO = "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Ministry_of_Education_Saudi_Arabia.svg/200px-Ministry_of_Education_Saudi_Arabia.svg.png";
     let logoBase64 = DEFAULT_LOGO;
-    let currentRawText = "";
 
     function initPdfJs() { 
         if (typeof window['pdfjs-dist/build/pdf'] !== 'undefined') {
@@ -201,34 +302,85 @@
     }
     window.onload = initPdfJs;
 
-    // Toggle Header Settings
     document.getElementById('toggleHeaderBtn').addEventListener('click', () => {
         document.getElementById('headerSettings').classList.toggle('hidden');
     });
-    
-    // File Upload Handlers
+
+    window.insertImage = function() { document.getElementById('inlineImageInput').click(); };
+    window.handleInlineImage = function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('textContent').focus();
+            document.execCommand('insertHTML', false, `<div><br></div><div style="text-align:center;"><img src="${e.target.result}" alt="صورة مدرجة"></div><div><br></div>`);
+        };
+        reader.readAsDataURL(file);
+        event.target.value = ''; 
+    };
+
+    window.insertTable = function() { document.getElementById('tableModal').classList.remove('hidden'); };
+    window.confirmInsertTable = function() {
+        const rows = parseInt(document.getElementById('tblRows').value);
+        const cols = parseInt(document.getElementById('tblCols').value);
+        let tableHtml = '<div><br></div><table style="width:100%; text-align: center;"><tbody>';
+        for (let i = 0; i < rows; i++) {
+            tableHtml += '<tr>';
+            for (let j = 0; j < cols; j++) {
+                if (i === 0) tableHtml += '<th style="background-color: #f8fafc;">عنوان</th>';
+                else tableHtml += '<td>...</td>';
+            }
+            tableHtml += '</tr>';
+        }
+        tableHtml += '</tbody></table><div><br></div>';
+        document.getElementById('tableModal').classList.add('hidden');
+        document.getElementById('textContent').focus();
+        document.execCommand('insertHTML', false, tableHtml);
+    };
+
+    window.insertTemplate = function(type) {
+        document.getElementById('textContent').focus();
+        let templateHtml = '';
+        // استخدام span مع كلاس bracket-fix لحماية الأقواس من الانعكاس
+        const bOpen = '<span class="bracket-fix">(</span>';
+        const bClose = '<span class="bracket-fix">)</span>';
+        const brackets = `<span class="bracket-fix">&nbsp; ( &nbsp; &nbsp; ) &nbsp;</span>`;
+        
+        switch(type) {
+            case 'mcq':
+                templateHtml = `<div><br></div><div><b>السؤال الأول: اختر الإجابة الصحيحة</b></div><div>1- نص السؤال هنا؟</div><div>أ- خيار أول &nbsp; &nbsp; &nbsp; ب- خيار ثاني &nbsp; &nbsp; &nbsp; ج- خيار ثالث &nbsp; &nbsp; &nbsp; د- خيار رابع</div><div><br></div>`;
+                break;
+            case 'tf':
+                templateHtml = `<div><br></div><div><b>السؤال الثاني: ضع علامة ${bOpen}صح${bClose} أو ${bOpen}خطأ${bClose}</b></div><div>1- نص السؤال هنا؟ ${brackets}</div><div>2- نص السؤال هنا؟ ${brackets}</div><div><br></div>`;
+                break;
+            case 'match':
+                templateHtml = `<div><br></div><div><b>السؤال الثالث: صل من العمود ${bOpen}أ${bClose} ما يناسبه من العمود ${bOpen}ب${bClose}</b></div><table style="width:100%; text-align: center; border: 1px solid #000;"><tbody><tr><th style="background-color: #f8fafc; border: 1px solid #000; padding: 8px;">العمود ${bOpen}أ${bClose}</th><th style="background-color: #f8fafc; border: 1px solid #000; padding: 8px; width: 80px;">الإجابة</th><th style="background-color: #f8fafc; border: 1px solid #000; padding: 8px;">العمود ${bOpen}ب${bClose}</th></tr><tr><td style="border: 1px solid #000; padding: 8px;">1- العنصر الأول</td><td style="border: 1px solid #000; padding: 8px;">${brackets}</td><td style="border: 1px solid #000; padding: 8px;">أ- الخيار الأول</td></tr></tbody></table><div><br></div>`;
+                break;
+            case 'essay':
+                templateHtml = `<div><br></div><div><b>السؤال الرابع: أجب عن الأسئلة التالية</b></div><div>1- نص السؤال المقالي هنا؟</div><div><br><br><br></div>`;
+                break;
+        }
+        document.execCommand('insertHTML', false, templateHtml);
+    };
+
     document.getElementById('dropZone').addEventListener('click', () => document.getElementById('fileInput').click());
-    
     document.getElementById('logoInput').addEventListener('change', e => {
         const file = e.target.files[0];
         if(!file) return;
         const reader = new FileReader();
-        reader.onload = ev => { logoBase64 = ev.target.result; document.getElementById('logoPreviewImg').src = logoBase64; if(currentRawText) renderExam(); };
+        reader.onload = ev => { logoBase64 = ev.target.result; document.getElementById('logoPreviewImg').src = logoBase64; };
         reader.readAsDataURL(file);
     });
-    
     document.getElementById('resetLogo').addEventListener('click', () => {
         logoBase64 = DEFAULT_LOGO;
         document.getElementById('logoPreviewImg').src = logoBase64;
-        if(currentRawText) renderExam();
     });
 
     document.getElementById('fileInput').addEventListener('change', async e => {
         const file = e.target.files[0];
         if(!file) return;
         const status = document.getElementById('uploadStatus');
-        status.className = "text-xs text-center text-blue-600 mt-2 block";
-        status.innerHTML = 'جاري القراءة...';
+        status.className = "text-xs text-center text-blue-600 mt-2 block"; status.innerHTML = 'جاري القراءة...';
         try {
             let text = "";
             const fileName = file.name.toLowerCase();
@@ -243,48 +395,69 @@
                 const res = await mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() });
                 text = res.value;
             } else if (fileName.endsWith('.txt')) { text = await file.text(); }
-            document.getElementById('textContent').value = text;
-            status.innerText = "✓ تم التحميل واللصق";
+            document.getElementById('textContent').innerHTML += text.replace(/\n/g, '<br>');
+            status.innerText = "✓ تم التحميل";
             setTimeout(() => status.classList.add('hidden'), 3000);
-        } catch (err) { 
-            status.className = "text-xs text-center text-red-600 mt-2 block";
-            status.innerText = "✗ حدث خطأ في قراءة الملف"; 
-        }
+        } catch (err) { status.innerText = "✗ خطأ في القراءة"; }
     });
 
-    // Generate/Format Action
     document.getElementById('generateBtn').addEventListener('click', () => {
-        const content = document.getElementById('textContent').value.trim();
-        if(!content) { 
-            showModal("تنبيه", "يرجى لصق الأسئلة أو كتابتها أولاً في المربع المخصص."); 
-            return; 
-        }
-        
-        currentRawText = content;
+        const editor = document.getElementById('textContent');
+        if(!editor.innerText.trim() && !editor.innerHTML.includes('<img') && !editor.innerHTML.includes('<table')) return;
         renderExam();
-        
-        // إخفاء الشاشة الأولى وإظهار الشاشة الثانية
         document.getElementById('controlPanel').classList.add('hidden');
         document.getElementById('previewArea').classList.remove('hidden');
         document.getElementById('previewArea').classList.add('flex');
-        
         document.getElementById('placeholder').classList.add('hidden');
         document.getElementById('exam-paper').classList.remove('hidden');
-        
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 
-    // زر العودة
     window.goBackToEdit = function() {
         document.getElementById('previewArea').classList.add('hidden');
         document.getElementById('previewArea').classList.remove('flex');
         document.getElementById('controlPanel').classList.remove('hidden');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    // الدالة الذكية لتنسيق الأسئلة
     function renderExam() {
-        if(!currentRawText) return;
+        const editor = document.getElementById('textContent');
+        const clone = editor.cloneNode(true);
+        
+        // معالجة الأقواس في النص كاملاً لمنع انعكاسها
+        let contentHtml = clone.innerHTML;
+        // استبدال الأقواس العادية بأقواس محمية في المعاينة
+        contentHtml = contentHtml.replace(/\(([^)]*)\)/g, '<span class="bracket-fix">($1)</span>');
+
+        const images = [];
+        clone.querySelectorAll('img').forEach((img, i) => {
+            images.push(img.src);
+            const marker = document.createTextNode(`\n___SYS_IMG_${i}___\n`);
+            img.parentNode.replaceChild(marker, img);
+        });
+
+        const tables = [];
+        clone.querySelectorAll('table').forEach((table, i) => {
+            table.style.width = '100%';
+            table.style.borderCollapse = 'collapse';
+            table.style.margin = '15px 0';
+            table.style.textAlign = 'center';
+            table.querySelectorAll('th, td').forEach(cell => {
+                cell.style.border = '1px solid #000';
+                cell.style.padding = '8px';
+                // حماية الأقواس داخل الجداول أيضاً
+                cell.innerHTML = cell.innerHTML.replace(/\(([^)]*)\)/g, '<span class="bracket-fix">($1)</span>');
+            });
+            tables.push(table.outerHTML);
+            const marker = document.createTextNode(`\n___SYS_TABLE_${i}___\n`);
+            table.parentNode.replaceChild(marker, table);
+        });
+
+        let htmlString = clone.innerHTML;
+        htmlString = htmlString.replace(/<br\s*\/?>/gi, '\n').replace(/<\/(div|p|h[1-6]|li|tr)>/gi, '\n');
+        let tempWrapper = document.createElement('div');
+        tempWrapper.innerHTML = htmlString;
+        let rawText = tempWrapper.textContent || tempWrapper.innerText || "";
+        let lines = rawText.split(/\r?\n|\r/);
         
         const v = id => document.getElementById(id).value;
         const fixRTL = (s) => '&#x200F;' + (s||'').trim().replace(/ /g, '&nbsp;') + '&#x200F;';
@@ -292,41 +465,43 @@
 
         let formattedText = '';
         let questionCounter = 1;
-        let lines = currentRawText.split('\n');
         
         lines.forEach(line => {
             let tLine = line.trim();
             if (!tLine) return;
 
-            // الحفاظ على المسافات بدقة للخيارات المتلاصقة لمنع اختفائها
-            let safeLine = line.replace(/\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;').replace(/  +/g, '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');
+            const imgMatch = tLine.match(/^___SYS_IMG_(\d+)___$/);
+            if (imgMatch) {
+                formattedText += `<div style="text-align:center; clear:both; page-break-inside: avoid;"><img src="${images[imgMatch[1]]}" style="max-height: 250px; max-width: 100%; border-radius: 8px; margin: 15px auto; border: 1px solid #cbd5e1;"></div>`;
+                return;
+            }
 
-            // حل جذري لمشكلة انعكاس الشرطة (-) في الـ PDF بفصل الشرطة برمجياً عن الحرف
+            const tableMatch = tLine.match(/^___SYS_TABLE_(\d+)___$/);
+            if (tableMatch) {
+                formattedText += `<div style="page-break-inside: avoid; clear:both; overflow-x: auto;">${tables[tableMatch[1]]}</div>`;
+                return;
+            }
+
+            // تطبيق حماية الأقواس على السطور العادية
+            let lineContent = line.replace(/\(([^)]*)\)/g, '<span class="bracket-fix">($1)</span>');
+            let safeLine = lineContent.replace(/\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;').replace(/  +/g, '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');
             safeLine = safeLine.replace(/^([أبجد])\s*[-]/, '<span style="display:inline-block;">$1</span><span style="display:inline-block; margin-right:3px; margin-left:3px;">-</span>');
 
-            // 1. هل هو عنوان رئيسي؟ (يحتوي على كلمات دلالية معينة)
-            let isHeader = tLine.includes('السؤال الأول') || tLine.includes('السؤال الثاني') || tLine.includes('السؤال الثالث') || tLine.includes('السؤال الرابع') || tLine.includes('السؤال الخامس') || tLine.includes('أولاً') || tLine.includes('ثانياً') || tLine.includes('اختر الإجابة') || tLine.includes('ضع علامة') || tLine.includes('أكمل الفراغ') || tLine.includes('زاوج') || tLine.includes('صل بين');
-
-            // 2. هل هو سؤال؟ (يبدأ برقم متبوع بشرطة أو قوس، أو يبدأ بكلمة س1، أو ينتهي بعلامة استفهام)
+            let isHeader = tLine.includes('السؤال الأول') || tLine.includes('السؤال الثاني') || tLine.includes('السؤال الثالث') || tLine.includes('أولاً') || tLine.includes('ثانياً') || tLine.includes('اختر الإجابة') || tLine.includes('ضع علامة') || tLine.includes('أكمل الفراغ') || tLine.includes('زاوج') || tLine.includes('صل بين');
             let qRegex = /^((س\s*\d+)|(\d+\s*[\-\.\)]))/;
             let isQuestion = qRegex.test(tLine) || tLine.endsWith('؟') || tLine.endsWith('?');
 
-            // عملية البناء والتنسيق
             if (isHeader) {
-                // تصفير العداد إذا كان القسم هو السؤال الأول أو أولاً
-                if (tLine.includes('السؤال الأول') || tLine.includes('أولاً')) {
-                    questionCounter = 1;
-                }
-                formattedText += `<div style="background-color: #f1f5f9; border-right: 4px solid #1e3a8a; padding: 10px 15px; margin-top: 30px; margin-bottom: 20px; font-weight: bold; font-size: 16px; color: #0f172a; border-radius: 4px; page-break-inside: avoid;">${safeLine}</div>`;
+                if (tLine.includes('السؤال الأول') || tLine.includes('أولاً')) questionCounter = 1;
+                formattedText += `<div style="background-color: #ffffff; border-right: 4px solid #1e3a8a; border-bottom: 1px solid #e2e8f0; padding: 10px 15px; margin-top: 30px; margin-bottom: 20px; font-weight: bold; font-size: 16px; color: #0f172a; border-radius: 4px; page-break-inside: avoid; clear: both;">${safeLine}</div>`;
             } 
             else if (isQuestion) {
-                // مسح الترقيم العشوائي القديم الذي وضعه المستخدم (إن وجد) لتوحيد الترقيم
                 let cleanQ = tLine.replace(qRegex, '').trim();
                 if (cleanQ.startsWith('-') || cleanQ.startsWith('.')) cleanQ = cleanQ.substring(1).trim();
-                
-                // رسم الخط الفاصل، وكتابة السؤال بلون وترقيم جديدين (مع فصل الرقم عن الشرطة لمنع الانقلاب بالـ PDF)
+                // حماية الأقواس في السؤال المنظف أيضاً
+                cleanQ = cleanQ.replace(/\(([^)]*)\)/g, '<span class="bracket-fix">($1)</span>');
                 formattedText += `
-                    <div style="border-top: 1px dashed #cbd5e1; margin-top: 20px; padding-top: 15px; page-break-inside: avoid;">
+                    <div style="border-top: 1px dashed #cbd5e1; margin-top: 20px; padding-top: 15px; page-break-inside: avoid; clear: both;">
                         <b style="color: #1e3a8a; font-size: 16px; display: block; margin-bottom: 8px;">
                             <span style="display:inline-block;">${questionCounter}</span><span style="display:inline-block; margin-right:4px; margin-left:4px;">-</span> ${cleanQ || safeLine}
                         </b>
@@ -334,106 +509,90 @@
                 questionCounter++;
             } 
             else {
-                // إذا لم يكن عنواناً ولا سؤالاً، فهو بالتأكيد (نص أو خيارات أ ب ج د) تابعة للسؤال
-                formattedText += `<div style="padding-right: 25px; margin-bottom: 5px; color: #334155; page-break-inside: avoid;">${safeLine}</div>`;
+                formattedText += `<div style="padding-right: 25px; margin-bottom: 5px; color: #334155; page-break-inside: avoid; clear: both;">${safeLine}</div>`;
             }
         });
 
+        const showFooter = document.getElementById('showFooterSettings').checked;
+        const teacherName = document.getElementById('hTeacherName').value.trim();
+        let footerHtml = '';
+        if (showFooter) {
+            footerHtml = `
+            <div style="margin-top: 40px; border-top: 2px solid #1e3a8a; padding-top: 20px; text-align: center; font-weight: bold; font-size: 16px; page-break-inside: avoid; clear: both;">
+                <p style="color: #1e3a8a; margin-bottom: 15px;"><i class="fa-solid fa-check-circle"></i> انتهت الأسئلة، مع تمنياتي لكم بالتوفيق والنجاح</p>
+                ${teacherName ? `<p style="font-size: 14px; color: #334155;">معلم المادة: <span style="font-family: 'Tajawal', sans-serif; font-size: 18px; margin-right: 10px;">${teacherName}</span></p>` : ''}
+            </div>`;
+        }
+
         let html = `
-        <table style="width: 100%; border-bottom: 2px solid #1e3a8a; margin-bottom: 20px; direction: rtl; border-collapse: collapse;">
+        <table class="header-table" style="width: 100%; border-bottom: 2px solid #1e3a8a; margin-bottom: 20px; direction: rtl; border-collapse: collapse;">
             <tr>
-                <td style="width:33%; text-align:center; vertical-align:top; font-size:13px; line-height:1.6;">${vf('hR1')}<br>${vf('hR2')}<br>${vf('hEduDept')}<br>${vf('hSchool')}</td>
-                <td style="width:34%; text-align:center; vertical-align:top;">
-                    <img src="${logoBase64}" style="height:110px; max-width:100%; object-fit:contain; margin: 0 auto;">
+                <td style="width:33%; text-align:center; vertical-align:top; font-size:13px; line-height:1.6; border: none;">${vf('hR1')}<br>${vf('hR2')}<br>${vf('hEduDept')}<br>${vf('hSchool')}</td>
+                <td style="width:34%; text-align:center; vertical-align:top; border: none;">
+                    <img src="${logoBase64}" style="height:140px; max-width:100%; object-fit:contain; margin: 0 auto;">
                     <div style="margin-top: 10px;"><b>${v('examTitle')}</b></div>
                 </td>
-                <td style="width:33%; text-align:left; vertical-align:top; font-size:13px; line-height:1.6;"><div style="display:inline-block; text-align:right;">${vf('hL1')}<br>${vf('hL2')}<br>${vf('hTime')}<br>${vf('hDate')}</div></td>
+                <td style="width:33%; text-align:left; vertical-align:top; font-size:13px; line-height:1.6; border: none;"><div style="display:inline-block; text-align:right;">${vf('hL1')}<br>${vf('hL2')}<br>${vf('hTime')}<br>${vf('hDate')}</div></td>
             </tr>
         </table>
-        
-        <!-- قسم بيانات الطالب بعد توسعته وإعادة ترتيبه وإزاحة الدائرة لليمين -->
         <div style="border:1px solid #000; padding:15px 20px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; direction:rtl; font-size: 15px; font-weight: bold;">
             <div style="flex: 1; display: flex; justify-content: space-between; align-items: center;">
                 <div style="flex: 2; text-align: right;">${vf('hStudentName')}</div>
                 <div style="flex: 1.5; text-align: center;">${vf('hAcademicNum')}</div>
                 <div style="flex: 1; text-align: left;">${vf('hSection')}</div>
             </div>
-            <!-- دائرة الدرجة مقسومة بخط أفقي (مزاحة لليمين 45 بيكسل) -->
             <div style="border:1px solid #000; width:50px; height:50px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink: 0; background-color: #fff; margin-left: 45px;">
                 <div style="width: 30px; border-top: 1.5px solid #000;"></div>
             </div>
         </div>
-        
         <div style="direction:rtl; text-align:right; font-size:15px; line-height:2.0; font-family:'Tajawal', sans-serif;">
             ${formattedText}
-        </div>
-        `;
-
+            ${footerHtml}
+        </div>`;
         document.getElementById('paper-content').innerHTML = html;
     }
 
-    // ميزة الحفظ المحلي (Local Storage)
     window.saveToLibrary = function() {
-        if(!currentRawText) return;
+        const editorContent = document.getElementById('textContent').innerHTML;
+        if(!editorContent.trim()) return;
         const title = document.getElementById('examTitle').value || 'اختبار بدون عنوان';
-        const newExam = {
-            id: Date.now().toString(),
-            title: title,
-            text: currentRawText,
-            logo: logoBase64,
-            date: new Date().toLocaleDateString('ar-SA')
-        };
-        
+        const newExam = { id: Date.now().toString(), title: title, text: editorContent, logo: logoBase64, date: new Date().toLocaleDateString('ar-SA') };
         let library = JSON.parse(localStorage.getItem('myExamsLibrary') || '[]');
         library.push(newExam);
         localStorage.setItem('myExamsLibrary', JSON.stringify(library));
-        
-        showModal("نجاح", "تم حفظ الاختبار في متصفحك بنجاح. يمكنك استعادته لاحقاً من زر مكتبتي.");
+        showModal("نجاح", "تم حفظ الاختبار في متصفحك بنجاح.");
     };
 
     window.loadLibraryUI = function() {
         const container = document.getElementById('libraryContent');
         let library = JSON.parse(localStorage.getItem('myExamsLibrary') || '[]');
-        
-        if (library.length === 0) {
-            container.innerHTML = '<div class="text-center py-10 text-slate-400 text-sm">المكتبة فارغة حالياً. قم بحفظ اختباراتك أولاً.</div>';
-            return;
-        }
-        
+        if (library.length === 0) { container.innerHTML = '<div class="text-center py-10 text-slate-400 text-sm">المكتبة فارغة حالياً.</div>'; return; }
         library.sort((a, b) => b.id - a.id);
         container.innerHTML = library.map(exam => `
             <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex justify-between items-center hover:border-indigo-300 transition-colors">
-                <div>
-                    <h4 class="font-bold text-slate-800 text-sm mb-1">${exam.title}</h4>
-                    <span class="text-[10px] text-slate-400">${exam.date}</span>
-                </div>
+                <div><h4 class="font-bold text-slate-800 text-sm mb-1">${exam.title}</h4><span class="text-[10px] text-slate-400">${exam.date}</span></div>
                 <div class="flex gap-2">
                     <button onclick="loadFromLibrary('${exam.id}')" class="bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg text-xs font-bold">استرجاع</button>
                     <button onclick="deleteFromLibrary('${exam.id}')" class="bg-rose-50 text-rose-600 px-3 py-1.5 rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>
                 </div>
             </div>`).join('');
+        document.getElementById('libraryModal').classList.remove('hidden');
     };
 
     window.loadFromLibrary = function(id) {
         let library = JSON.parse(localStorage.getItem('myExamsLibrary') || '[]');
         const exam = library.find(e => e.id === id);
         if(exam) {
-            document.getElementById('textContent').value = exam.text;
-            currentRawText = exam.text;
+            document.getElementById('textContent').innerHTML = exam.text;
             if(exam.logo) logoBase64 = exam.logo;
             document.getElementById('examTitle').value = exam.title;
-            
             renderExam();
-            
             document.getElementById('libraryModal').classList.add('hidden');
-            
             document.getElementById('controlPanel').classList.add('hidden');
             document.getElementById('previewArea').classList.remove('hidden');
             document.getElementById('previewArea').classList.add('flex');
-            
             document.getElementById('placeholder').classList.add('hidden');
             document.getElementById('exam-paper').classList.remove('hidden');
-            
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     };
@@ -445,16 +604,9 @@
         loadLibraryUI(); 
     };
 
-    // التصدير
     window.exportPDF = function() { 
         const element = document.getElementById('exam-paper');
-        const opt = {
-            margin:       0,
-            filename:     'exam.pdf',
-            image:        { type: 'jpeg', quality: 1.0 },
-            html2canvas:  { scale: 2, backgroundColor: '#ffffff' },
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
+        const opt = { margin: 0, filename: 'exam.pdf', image: { type: 'jpeg', quality: 1.0 }, html2canvas: { scale: 2, backgroundColor: '#ffffff' }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
         html2pdf().set(opt).from(element).save(); 
     };
     
@@ -463,11 +615,7 @@
         const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "exam.doc"; link.click();
     };
     
-    window.showModal = function(title, msg) { 
-        document.getElementById('modalTitle').innerText = title; 
-        document.getElementById('modalMsg').innerText = msg; 
-        document.getElementById('alertModal').classList.remove('hidden'); 
-    };
+    window.showModal = function(title, msg) { document.getElementById('modalTitle').innerText = title; document.getElementById('modalMsg').innerText = msg; document.getElementById('alertModal').classList.remove('hidden'); };
     window.closeModal = function() { document.getElementById('alertModal').classList.add('hidden'); };
 </script>
 </body>
