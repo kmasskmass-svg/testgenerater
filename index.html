@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مولد الاختبار الذكي | أ.كليب الزهراني</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- مكتبات معالجة الملفات -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --secondary: #10b981;
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #f1f5f9;
+            color: #1e293b;
+        }
+
+        #exam-paper {
+            background-color: white;
+            min-height: 297mm;
+            width: 210mm;
+            margin: 0 auto;
+            padding: 20mm;
+            box-sizing: border-box;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.05);
+        }
+
+        @media print {
+            @page { size: A4; margin: 15mm; }
+            body { background: white !important; margin: 0; padding: 0; }
+            .no-print, header, .lg\:col-span-4, #toolbar { display: none !important; }
+            .lg\:col-span-8 { width: 100% !important; display: block !important; }
+            .bg-slate-300 { 
+                background: transparent !important; 
+                padding: 0 !important; 
+                display: block !important; 
+                overflow: visible !important; 
+                min-height: auto !important;
+            }
+            #exam-paper { box-shadow: none !important; margin: 0 !important; width: 100% !important; padding: 0 !important; display: block !important; }
+        }
+
+        .glass-card { background: rgba(255, 255, 255, 0.98); border: 1px solid #e2e8f0; }
+        .switch { position: relative; display: inline-block; width: 44px; height: 22px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 22px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--secondary); }
+        input:checked + .slider:before { transform: translateX(22px); }
+        .section-title { position: relative; padding-right: 12px; }
+        .section-title::after { content: ''; position: absolute; right: 0; top: 15%; height: 70%; width: 4px; background: var(--primary); border-radius: 2px; }
+        
+        .matching-table { width: 100%; border-collapse: collapse; margin-top: 10px; border: 1px solid #000; }
+        .matching-table td, .matching-table th { border: 1px solid #000; padding: 8px; vertical-align: top; text-align: center; font-size: 14px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
+</head>
+<body class="p-4 md:p-6 custom-scrollbar">
+
+<div class="max-w-7xl mx-auto">
+    <!-- Header Area -->
+    <header class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 no-print">
+        <div class="flex items-center gap-4">
+            <div class="bg-blue-900 text-white p-3 rounded-2xl shadow-lg">
+                <i class="fa-solid fa-graduation-cap text-2xl"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl font-extrabold text-blue-950 tracking-tight">مولد الاختبار الذكي</h1>
+                <p class="text-blue-700 text-sm font-bold">إعداد: أ.كليب بن أحمد الزهراني</p>
+            </div>
+        </div>
+        <div class="bg-white px-4 py-2 rounded-xl border border-blue-100 flex items-center gap-3">
+            <button onclick="document.getElementById('libraryModal').classList.remove('hidden')" class="bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg border border-indigo-100 flex items-center gap-2 hover:bg-indigo-100 transition-all">
+                <i class="fa-solid fa-book-bookmark"></i> <span class="text-xs font-bold">مكتبتي</span>
+            </button>
+        </div>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Control Panel -->
+        <div class="lg:col-span-4 space-y-5 no-print">
+            
+            <div class="glass-card p-5 rounded-2xl shadow-sm space-y-4">
+                <h2 class="font-bold text-slate-700 flex items-center gap-2 section-title">
+                    <i class="fa-solid fa-file-import text-blue-600"></i> مصدر المحتوى
+                </h2>
+                <div id="dropZone" class="border-2 border-dashed border-blue-200 rounded-xl p-6 text-center cursor-pointer hover:bg-blue-50 transition-all">
+                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-blue-300 mb-2"></i>
+                    <p class="text-sm font-medium text-slate-600">PDF / DOCX / TXT</p>
+                    <input type="file" id="fileInput" accept=".pdf,.docx,.txt" class="hidden">
+                </div>
+                <textarea id="textContent" rows="4" class="w-full p-3 text-sm bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-1 focus:ring-blue-400" placeholder="الصق النص هنا..."></textarea>
+                <div id="uploadStatus" class="text-xs text-center hidden"></div>
+            </div>
+
+            <div class="glass-card p-5 rounded-2xl shadow-sm space-y-4">
+                <h2 class="font-bold text-slate-700 flex items-center gap-2 section-title">
+                    <i class="fa-solid fa-sliders text-blue-600"></i> تحديد النطاق والأسئلة
+                </h2>
+                <div class="grid grid-cols-2 gap-3 pt-2">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-slate-400">اختياري</label>
+                        <input type="number" id="countMCQ" value="5" class="w-full p-2 border rounded-lg text-center text-sm">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-slate-400">صح / خطأ</label>
+                        <input type="number" id="countTF" value="5" class="w-full p-2 border rounded-lg text-center text-sm">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-slate-400">توصيل</label>
+                        <input type="number" id="countMatch" value="1" class="w-full p-2 border rounded-lg text-center text-sm">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-slate-400">أكمل</label>
+                        <input type="number" id="countFill" value="2" class="w-full p-2 border rounded-lg text-center text-sm">
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card p-5 rounded-2xl shadow-sm space-y-4">
+                <button id="toggleHeaderBtn" class="w-full flex justify-between items-center text-slate-700 font-bold text-sm">
+                    <span class="flex items-center gap-2 section-title">إعدادات الترويسة والشعار</span>
+                    <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                </button>
+                <div id="headerSettings" class="space-y-3 pt-2 hidden">
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="text" id="hR1" placeholder="المملكة العربية السعودية" class="p-2 text-xs bg-slate-50 border rounded-lg">
+                        <input type="text" id="hL1" placeholder="المادة: ..........." class="p-2 text-xs bg-slate-50 border rounded-lg">
+                        <input type="text" id="hR2" placeholder="وزارة التعليم" class="p-2 text-xs bg-slate-50 border rounded-lg">
+                        <input type="text" id="hL2" placeholder="الصف: ..........." class="p-2 text-xs bg-slate-50 border rounded-lg">
+                        <input type="text" id="hEduDept" placeholder="إدارة التعليم" value="إدارة تعليم ..............." class="p-2 text-xs bg-slate-50 border rounded-lg">
+                        <input type="text" id="hSchool" placeholder="المدرسة" value="مدرسة: ......................." class="p-2 text-xs bg-slate-50 border rounded-lg">
+                        <input type="text" id="hTime" placeholder="الزمن" value="الزمن: ..........." class="p-2 text-xs bg-slate-50 border rounded-lg">
+                        <input type="text" id="hDate" placeholder="التاريخ" value="التاريخ: ..... / ..... / 144 هـ" class="p-2 text-xs bg-slate-50 border rounded-lg">
+                    </div>
+                    <input type="text" id="examTitle" placeholder="اختبار الفصل الدراسي ..." class="w-full p-2 text-xs font-bold text-center bg-blue-50 border border-blue-100 rounded-lg">
+                    
+                    <div class="grid grid-cols-3 gap-2 border-t pt-3 mt-1 border-slate-100">
+                        <input type="text" id="hStudentName" value="اسم المتدرب: ...................................................." placeholder="اسم المتدرب" class="p-2 text-[10px] bg-slate-50 border rounded-lg">
+                        <input type="text" id="hAcademicNum" value="الرقم الأكاديمي: ......................." placeholder="الرقم الأكاديمي" class="p-2 text-[10px] bg-slate-50 border rounded-lg">
+                        <input type="text" id="hSection" value="الشعبة: .........." placeholder="الشعبة" class="p-2 text-[10px] bg-slate-50 border rounded-lg">
+                    </div>
+
+                    <div class="p-2 border rounded-xl bg-slate-50 text-center flex flex-col items-center gap-2">
+                        <img id="logoPreviewImg" src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Ministry_of_Education_Saudi_Arabia.svg/200px-Ministry_of_Education_Saudi_Arabia.svg.png" class="h-10 object-contain" alt="الشعار">
+                        <input type="file" id="logoInput" accept="image/*" class="hidden">
+                        <div class="flex gap-3">
+                            <button onclick="document.getElementById('logoInput').click()" class="text-[11px] font-bold text-blue-600 underline">تغيير الشعار</button>
+                            <button id="resetLogo" class="text-[10px] text-red-500 hover:underline">استعادة الافتراضي</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button id="generateBtn" class="w-full bg-blue-900 hover:bg-blue-950 text-white font-bold py-4 rounded-2xl shadow-xl flex justify-center items-center gap-3 transition-all">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                <span>توليد الاختبار</span>
+            </button>
+            <div id="mainStatus" class="text-center text-[11px] font-bold text-slate-400 hidden"></div>
+        </div>
+
+        <!-- Preview Area -->
+        <div class="lg:col-span-8 flex flex-col">
+            <div id="toolbar" class="hidden glass-card p-4 rounded-2xl mb-5 flex justify-between items-center no-print">
+                <div class="flex items-center gap-4">
+                    <span class="text-xs font-bold text-slate-600">الإجابات</span>
+                    <label class="switch"><input type="checkbox" id="toggleAnswers" onchange="if(window.examData) window.renderExam()"><span class="slider"></span></label>
+                </div>
+                <div class="flex gap-2">
+                    <button id="saveLibBtn" onclick="saveToLibrary()" class="bg-emerald-50 text-emerald-600 px-3 py-2 rounded-xl text-xs font-bold border border-emerald-100 hover:bg-emerald-100"><i class="fa-solid fa-bookmark"></i> حفظ</button>
+                    <button onclick="exportPDF()" class="bg-rose-50 text-rose-600 px-3 py-2 rounded-xl text-xs font-bold border border-rose-100 hover:bg-rose-100"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+                    <button onclick="exportWord()" class="bg-blue-50 text-blue-600 px-3 py-2 rounded-xl text-xs font-bold border border-blue-100 hover:bg-blue-100"><i class="fa-solid fa-file-word"></i> Word</button>
+                </div>
+            </div>
+
+            <div class="bg-slate-300 p-4 rounded-3xl flex-1 flex justify-center overflow-auto shadow-inner min-h-[800px]">
+                <div id="exam-paper" class="hidden">
+                    <div id="paper-content"></div>
+                </div>
+                <div id="placeholder" class="flex flex-col items-center justify-center text-slate-400 py-32 text-center">
+                    <i class="fa-solid fa-file-lines text-8xl opacity-10 mb-6"></i>
+                    <h3 class="text-lg font-bold text-slate-500">جاهز للتوليد</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="alertModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl text-center">
+        <h4 id="modalTitle" class="text-lg font-bold mb-2"></h4>
+        <div id="modalMsg" class="text-slate-500 text-sm mb-6 break-words"></div>
+        <button onclick="closeModal()" class="w-full py-3 bg-blue-900 text-white font-bold rounded-xl">موافق</button>
+    </div>
+</div>
+
+<div id="libraryModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[80vh] flex flex-col shadow-2xl overflow-hidden">
+        <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-indigo-50">
+            <h3 class="font-bold text-indigo-900 flex items-center gap-2"><i class="fa-solid fa-book-bookmark text-indigo-600"></i> مكتبتي (الأسئلة المحفوظة)</h3>
+            <button onclick="document.getElementById('libraryModal').classList.add('hidden')" class="text-slate-400 hover:text-rose-500"><i class="fa-solid fa-xmark text-xl"></i></button>
+        </div>
+        <div id="libraryContent" class="p-5 flex-1 overflow-y-auto space-y-3 custom-scrollbar bg-slate-50">
+            <div class="text-center py-10 text-slate-400 text-sm">جاري التحميل...</div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // ⬇️ ضع مفتاح API الخاص بك هنا بين علامتي التنصيص ⬇️
+    const apiKey = "AIzaSyDxzJ9oppAbWKtWIl7U12xTo2HBNwtzix8"; 
+    
+    const DEFAULT_LOGO = "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Ministry_of_Education_Saudi_Arabia.svg/200px-Ministry_of_Education_Saudi_Arabia.svg.png";
+    window.examData = null;
+    let logoBase64 = DEFAULT_LOGO;
+
+    let app, auth, db;
+    let isFirebaseEnabled = false;
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+    
+    try {
+        const firebaseConfigStr = typeof __firebase_config !== 'undefined' ? __firebase_config : null;
+        if (firebaseConfigStr) {
+            const firebaseConfig = JSON.parse(firebaseConfigStr);
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            isFirebaseEnabled = true;
+        }
+    } catch (err) { console.warn("Firebase Local Mode"); }
+    
+    let currentUser = null;
+    let libraryUnsubscribe = null;
+
+    const initAuth = async () => {
+        if (!isFirebaseEnabled) return; 
+        try {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
+            } else {
+                await signInAnonymously(auth);
+            }
+        } catch (err) { console.error("Auth error:", err); }
+    };
+    initAuth();
+
+    if (isFirebaseEnabled) {
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            if (user) {
+                const libRef = collection(db, 'artifacts', appId, 'users', user.uid, 'library');
+                libraryUnsubscribe = onSnapshot(libRef, (snapshot) => {
+                    const exams = [];
+                    snapshot.forEach(doc => exams.push({ id: doc.id, ...doc.data() }));
+                    renderLibraryUI(exams);
+                }, (err) => console.error("Snapshot error:", err));
+            } else { if (libraryUnsubscribe) libraryUnsubscribe(); }
+        });
+    } else {
+        document.getElementById('libraryContent').innerHTML = '<div class="text-center py-10 text-slate-400 text-sm">ميزة السحابة متاحة فقط عند الرفع على موقع.</div>';
+    }
+
+    function renderLibraryUI(exams) {
+        const container = document.getElementById('libraryContent');
+        if (exams.length === 0) {
+            container.innerHTML = '<div class="text-center py-10 text-slate-400 text-sm">المكتبة فارغة.</div>';
+            return;
+        }
+        exams.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        container.innerHTML = exams.map(exam => `
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex justify-between items-center hover:border-indigo-300 transition-colors">
+                <div><h4 class="font-bold text-slate-800 text-sm mb-1">${exam.title}</h4></div>
+                <div class="flex gap-2">
+                    <button onclick="loadFromLibrary('${exam.id}', '${exam.data.replace(/'/g, "\\'")}')" class="bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg text-xs font-bold">استرجاع</button>
+                    <button onclick="deleteFromLibrary('${exam.id}')" class="bg-rose-50 text-rose-600 px-3 py-1.5 rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            </div>`).join('');
+    }
+
+    window.saveToLibrary = async function() {
+        if (!isFirebaseEnabled) { window.showModal("تنبيه", "الحفظ السحابي غير متاح محلياً."); return; }
+        if (!currentUser || !window.examData) return;
+        const btn = document.getElementById('saveLibBtn');
+        btn.disabled = true;
+        try {
+            const title = document.getElementById('examTitle').value || 'اختبار جديد';
+            const libRef = doc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'library'));
+            await setDoc(libRef, { title, data: JSON.stringify(window.examData), createdAt: new Date().toISOString() });
+            window.showModal("نجاح", "تم الحفظ.");
+        } catch (e) { window.showModal("خطأ", "فشل الحفظ."); } finally { btn.disabled = false; }
+    };
+
+    window.loadFromLibrary = function(id, dataStr) {
+        try {
+            window.examData = JSON.parse(dataStr);
+            window.renderExam();
+            document.getElementById('libraryModal').classList.add('hidden');
+            document.getElementById('placeholder').classList.add('hidden');
+            document.getElementById('exam-paper').classList.remove('hidden');
+            document.getElementById('toolbar').classList.remove('hidden');
+        } catch(e) {}
+    };
+
+    window.deleteFromLibrary = async function(id) {
+        if(!currentUser) return;
+        try { await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'library', id)); } catch(e) {}
+    };
+
+    function initPdfJs() { if (typeof pdfjsLib !== 'undefined') pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js'; }
+    window.onload = initPdfJs;
+
+    document.getElementById('toggleHeaderBtn').addEventListener('click', () => document.getElementById('headerSettings').classList.toggle('hidden'));
+    document.getElementById('dropZone').addEventListener('click', () => document.getElementById('fileInput').click());
+    
+    document.getElementById('logoInput').addEventListener('change', e => {
+        const file = e.target.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = ev => { logoBase64 = ev.target.result; document.getElementById('logoPreviewImg').src = logoBase64; if(window.examData) window.renderExam(); };
+        reader.readAsDataURL(file);
+    });
+    
+    document.getElementById('resetLogo').addEventListener('click', () => {
+        logoBase64 = DEFAULT_LOGO;
+        document.getElementById('logoPreviewImg').src = logoBase64;
+        if(window.examData) window.renderExam();
+    });
+
+    document.getElementById('fileInput').addEventListener('change', async e => {
+        const file = e.target.files[0];
+        if(!file) return;
+        const status = document.getElementById('uploadStatus');
+        status.className = "text-xs text-center text-blue-600 mt-2 block";
+        status.innerHTML = 'جاري القراءة...';
+        try {
+            let text = "";
+            const fileName = file.name.toLowerCase();
+            if (fileName.endsWith('.pdf')) {
+                const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const content = await page.getTextContent();
+                    text += content.items.map(it => it.str).join(' ') + '\n';
+                }
+            } else if (fileName.endsWith('.docx')) {
+                const res = await mammoth.extractRawText({ arrayBuffer: await file.arrayBuffer() });
+                text = res.value;
+            } else if (fileName.endsWith('.txt')) { text = await file.text(); }
+            document.getElementById('textContent').value = text;
+            status.innerText = "✓ تم التحميل";
+        } catch (err) { status.innerText = "✗ خطأ في القراءة"; }
+    });
+
+    document.getElementById('generateBtn').addEventListener('click', async () => {
+        const content = document.getElementById('textContent').value.trim();
+        if(!content) { window.showModal("تنبيه", "يرجى إدخال المحتوى أولاً."); return; }
+        
+        const btn = document.getElementById('generateBtn');
+        const status = document.getElementById('mainStatus');
+        
+        const isInCanvas = (typeof __app_id !== 'undefined' && __app_id !== 'default-app-id');
+
+        if(!apiKey && !isInCanvas) {
+            window.showModal("مطلوب مفتاح API", "يرجى فتح الكود باستخدام محرر نصوص ووضع مفتاح API الجديد الخاص بك في سطر (const apiKey).");
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري التوليد...';
+        status.classList.remove('hidden');
+        status.innerText = "جاري الاتصال بالذكاء الاصطناعي...";
+        
+        const prompt = `أنشئ اختباراً من النص: ${content.substring(0, 15000)} بالعدد: MCQ:${document.getElementById('countMCQ').value}, TF:${document.getElementById('countTF').value}, Match:${document.getElementById('countMatch').value}, Fill:${document.getElementById('countFill').value}. التزم بصيغة JSON فقط.`;
+        const systemPrompt = `أنت خبير تربوي. المخرجات JSON فقط.`;
+
+        try {
+            // نستخدم الإصدار الأقوى والأحدث للذكاء الاصطناعي
+            const modelToUse = isInCanvas ? "gemini-2.5-flash-preview-09-2025" : "gemini-1.5-flash";
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:generateContent?key=${apiKey}`;
+            
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }],
+                    systemInstruction: { parts: [{ text: systemPrompt }] },
+                    generationConfig: { temperature: 0.7, responseMimeType: "application/json" }
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                let errorMessage = data.error?.message || `خطأ في الخادم ${response.status}`;
+                if (errorMessage.includes("is not found")) {
+                    errorMessage = "المفتاح الذي وضعته لا يدعم الإصدارات الحديثة من الذكاء الاصطناعي. يرجى استخراج مفتاح جديد من Google AI Studio.";
+                } else if (errorMessage.includes("API_KEY_INVALID")) {
+                    errorMessage = "المفتاح غير صحيح. تأكد من أنك نسخته بالكامل دون أي مسافات إضافية.";
+                }
+                throw new Error(errorMessage);
+            }
+
+            if (data.candidates && data.candidates.length > 0) {
+                let responseText = data.candidates[0].content.parts[0].text;
+                responseText = responseText.replace(/```json/g, "").replace(/```/g, "").trim();
+                window.examData = JSON.parse(responseText);
+                window.renderExam();
+                
+                document.getElementById('placeholder').classList.add('hidden');
+                document.getElementById('exam-paper').classList.remove('hidden');
+                document.getElementById('toolbar').classList.remove('hidden');
+                status.innerText = "تم بنجاح!";
+            } else {
+                throw new Error("لم يتم تلقي بيانات من الذكاء الاصطناعي.");
+            }
+
+        } catch (err) { 
+            status.innerText = "فشل التوليد.";
+            window.showModal("خطأ تقني", "تفاصيل المشكلة: " + err.message);
+        } finally { 
+            btn.disabled = false; 
+            btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> <span>توليد الاختبار</span>'; 
+        }
+    });
+
+    window.renderExam = function() {
+        if(!window.examData) return;
+        const examData = window.examData;
+        const showAns = document.getElementById('toggleAnswers').checked;
+        const v = id => document.getElementById(id).value;
+        
+        const fixRTL = (s) => '&#x200F;' + (s||'').trim().replace(/ /g, '&nbsp;') + '&#x200F;';
+        const vf = id => fixRTL(v(id));
+
+        let html = `
+        <table style="width: 100%; border-bottom: 2px solid #1e3a8a; margin-bottom: 20px; direction: rtl; border-collapse: collapse;">
+            <tr>
+                <td style="width:33%; text-align:center; font-size:12px;">${vf('hR1')}<br>${vf('hR2')}<br>${vf('hEduDept')}<br>${vf('hSchool')}</td>
+                <td style="width:34%; text-align:center;"><img src="${logoBase64}" style="height:70px;"><br><b>${v('examTitle')}</b></td>
+                <td style="width:33%; text-align:left; font-size:12px;"><div style="display:inline-block; text-align:right;">${vf('hL1')}<br>${vf('hL2')}<br>${vf('hTime')}<br>${vf('hDate')}</div></td>
+            </tr>
+        </table>
+        <div style="border:1px solid #000; padding:10px; margin-bottom:20px; display:flex; justify-content:space-between; direction:rtl;">
+            <div>${vf('hStudentName')} &nbsp; ${vf('hAcademicNum')} &nbsp; ${vf('hSection')}</div>
+            <div style="border:1px solid #000; width:40px; height:40px; border-radius:50%; text-align:center; line-height:40px;">/</div>
+        </div>`;
+
+        const addQ = (list, title, type) => {
+            if(!list || !list.length) return '';
+            let res = `<hr style="border:1px dashed #ccc; margin:20px 0;"><div style="direction:rtl; text-align:right;"><b>${title}</b>`;
+            list.forEach((it, i) => {
+                res += `<div style="margin:10px 0; page-break-inside:avoid;">${i+1}) ${it.q} ${showAns ? `<span style="color:green;">[${it.answer}]</span>`:''}</div>`;
+            });
+            return res + `</div>`;
+        };
+
+        html += addQ(examData.mcq, "السؤال الأول: اختر الإجابة الصحيحة:");
+        html += addQ(examData.tf, "السؤال الثاني: صح أم خطأ:");
+        html += addQ(examData.fill, "السؤال الثالث: أكمل الفراغات:");
+        
+        document.getElementById('paper-content').innerHTML = html;
+    }
+
+    window.exportPDF = function() { html2pdf().from(document.getElementById('exam-paper')).save(); };
+    window.exportWord = function() { 
+        const blob = new Blob([document.getElementById("exam-paper").innerHTML], {type:'application/msword'});
+        const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "exam.doc"; link.click();
+    };
+    window.showModal = function(title, msg) { document.getElementById('modalTitle').innerText = title; document.getElementById('modalMsg').innerText = msg; document.getElementById('alertModal').classList.remove('hidden'); }
+    window.closeModal = function() { document.getElementById('alertModal').classList.add('hidden'); }
+</script>
+</body>
+</html>
