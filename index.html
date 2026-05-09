@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مولد الاختبار الذكي | أ.كليب الزهراني</title>
+    <title>منسق الاختبارات الذكي | أ.كليب الزهراني</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -30,17 +30,17 @@
             min-height: 297mm;
             width: 210mm;
             margin: 0 auto;
-            padding: 20mm;
+            padding: 15mm 10mm; /* تم تقليل الهوامش الجانبية لزيادة عرض الورقة */
             box-sizing: border-box;
             position: relative;
             box-shadow: 0 0 20px rgba(0,0,0,0.05);
         }
 
         @media print {
-            @page { size: A4; margin: 15mm; }
+            @page { size: A4; margin: 10mm; } 
             body { background: white !important; margin: 0; padding: 0; }
-            .no-print, header, .lg\:col-span-4, #toolbar { display: none !important; }
-            .lg\:col-span-8 { width: 100% !important; display: block !important; }
+            .no-print, header, #controlPanel, #toolbar { display: none !important; }
+            #previewArea { display: block !important; width: 100% !important; margin: 0 !important; }
             .bg-slate-300 { 
                 background: transparent !important; 
                 padding: 0 !important; 
@@ -52,17 +52,8 @@
         }
 
         .glass-card { background: rgba(255, 255, 255, 0.98); border: 1px solid #e2e8f0; }
-        .switch { position: relative; display: inline-block; width: 44px; height: 22px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 22px; }
-        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--secondary); }
-        input:checked + .slider:before { transform: translateX(22px); }
         .section-title { position: relative; padding-right: 12px; }
         .section-title::after { content: ''; position: absolute; right: 0; top: 15%; height: 70%; width: 4px; background: var(--primary); border-radius: 2px; }
-        
-        .matching-table { width: 100%; border-collapse: collapse; margin-top: 10px; border: 1px solid #000; }
-        .matching-table td, .matching-table th { border: 1px solid #000; padding: 8px; vertical-align: top; text-align: center; font-size: 14px; }
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     </style>
@@ -74,59 +65,35 @@
     <header class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 no-print">
         <div class="flex items-center gap-4">
             <div class="bg-blue-900 text-white p-3 rounded-2xl shadow-lg">
-                <i class="fa-solid fa-graduation-cap text-2xl"></i>
+                <i class="fa-solid fa-file-pen text-2xl"></i>
             </div>
             <div>
-                <h1 class="text-2xl font-extrabold text-blue-950 tracking-tight">مولد الاختبار الذكي</h1>
+                <h1 class="text-2xl font-extrabold text-blue-950 tracking-tight">منسق الاختبارات الجاهزة</h1>
                 <p class="text-blue-700 text-sm font-bold">إعداد: أ.كليب بن أحمد الزهراني</p>
             </div>
         </div>
         <div class="bg-white px-4 py-2 rounded-xl border border-blue-100 flex items-center gap-3">
-            <button onclick="document.getElementById('libraryModal').classList.remove('hidden')" class="bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg border border-indigo-100 flex items-center gap-2 hover:bg-indigo-100 transition-all">
-                <i class="fa-solid fa-book-bookmark"></i> <span class="text-xs font-bold">مكتبتي</span>
+            <button onclick="document.getElementById('libraryModal').classList.remove('hidden'); loadLibraryUI();" class="bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg border border-indigo-100 flex items-center gap-2 hover:bg-indigo-100 transition-all">
+                <i class="fa-solid fa-book-bookmark"></i> <span class="text-xs font-bold">مكتبتي (حفظ محلي)</span>
             </button>
         </div>
     </header>
 
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <!-- Control Panel -->
-        <div class="lg:col-span-4 space-y-5 no-print">
+    <div id="mainContainer">
+        <!-- Control Panel (الشاشة الأولى) -->
+        <div id="controlPanel" class="max-w-4xl mx-auto space-y-6 no-print transition-all duration-500">
             
             <div class="glass-card p-5 rounded-2xl shadow-sm space-y-4">
                 <h2 class="font-bold text-slate-700 flex items-center gap-2 section-title">
-                    <i class="fa-solid fa-file-import text-blue-600"></i> مصدر المحتوى
+                    <i class="fa-solid fa-paste text-blue-600"></i> أسئلة الاختبار
                 </h2>
-                <div id="dropZone" class="border-2 border-dashed border-blue-200 rounded-xl p-6 text-center cursor-pointer hover:bg-blue-50 transition-all">
-                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-blue-300 mb-2"></i>
-                    <p class="text-sm font-medium text-slate-600">PDF / DOCX / TXT</p>
+                <div id="dropZone" class="border-2 border-dashed border-blue-200 rounded-xl p-4 text-center cursor-pointer hover:bg-blue-50 transition-all">
+                    <i class="fa-solid fa-file-word text-2xl text-blue-300 mb-1"></i>
+                    <p class="text-[11px] font-medium text-slate-600">رفع ملف Word أو PDF أو TXT</p>
                     <input type="file" id="fileInput" accept=".pdf,.docx,.txt" class="hidden">
                 </div>
-                <textarea id="textContent" rows="4" class="w-full p-3 text-sm bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-1 focus:ring-blue-400" placeholder="الصق النص هنا..."></textarea>
+                <textarea id="textContent" rows="18" class="w-full p-5 text-sm bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 resize-y leading-loose" placeholder="الصق أسئلتك هنا... &#10;&#10;💡 أفضل صيغة ليفهمها النظام ويقوم بترتيبها:&#10;السؤال الأول: اختر الإجابة الصحيحة&#10;1- ما هي عاصمة السعودية؟&#10;أ- الرياض   ب- جدة   ج- مكة   د- الدمام&#10;&#10;2- كم عدد القارات؟&#10;أ- 5&#10;ب- 6&#10;ج- 7"></textarea>
                 <div id="uploadStatus" class="text-xs text-center hidden"></div>
-            </div>
-
-            <div class="glass-card p-5 rounded-2xl shadow-sm space-y-4">
-                <h2 class="font-bold text-slate-700 flex items-center gap-2 section-title">
-                    <i class="fa-solid fa-sliders text-blue-600"></i> تحديد النطاق والأسئلة
-                </h2>
-                <div class="grid grid-cols-2 gap-3 pt-2">
-                    <div class="space-y-1">
-                        <label class="text-[10px] font-bold text-slate-400">اختياري</label>
-                        <input type="number" id="countMCQ" value="5" class="w-full p-2 border rounded-lg text-center text-sm">
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-[10px] font-bold text-slate-400">صح / خطأ</label>
-                        <input type="number" id="countTF" value="5" class="w-full p-2 border rounded-lg text-center text-sm">
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-[10px] font-bold text-slate-400">توصيل</label>
-                        <input type="number" id="countMatch" value="1" class="w-full p-2 border rounded-lg text-center text-sm">
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-[10px] font-bold text-slate-400">أكمل</label>
-                        <input type="number" id="countFill" value="2" class="w-full p-2 border rounded-lg text-center text-sm">
-                    </div>
-                </div>
             </div>
 
             <div class="glass-card p-5 rounded-2xl shadow-sm space-y-4">
@@ -134,7 +101,7 @@
                     <span class="flex items-center gap-2 section-title">إعدادات الترويسة والشعار</span>
                     <i class="fa-solid fa-chevron-down text-[10px]"></i>
                 </button>
-                <div id="headerSettings" class="space-y-3 pt-2 hidden">
+                <div id="headerSettings" class="space-y-3 pt-2">
                     <div class="grid grid-cols-2 gap-2">
                         <input type="text" id="hR1" placeholder="المملكة العربية السعودية" class="p-2 text-xs bg-slate-50 border rounded-lg">
                         <input type="text" id="hL1" placeholder="المادة: ..........." class="p-2 text-xs bg-slate-50 border rounded-lg">
@@ -164,22 +131,23 @@
                 </div>
             </div>
 
-            <button id="generateBtn" class="w-full bg-blue-900 hover:bg-blue-950 text-white font-bold py-4 rounded-2xl shadow-xl flex justify-center items-center gap-3 transition-all">
-                <i class="fa-solid fa-wand-magic-sparkles"></i>
-                <span>توليد الاختبار</span>
+            <button id="generateBtn" class="w-full bg-blue-900 hover:bg-blue-950 text-white font-bold py-4 rounded-2xl shadow-xl flex justify-center items-center gap-3 transition-all text-lg">
+                <i class="fa-solid fa-layer-group"></i>
+                <span>تنسيق وترتيب ورقة الاختبار</span>
             </button>
-            <div id="mainStatus" class="text-center text-[11px] font-bold text-slate-400 hidden"></div>
         </div>
 
-        <!-- Preview Area -->
-        <div class="lg:col-span-8 flex flex-col">
-            <div id="toolbar" class="hidden glass-card p-4 rounded-2xl mb-5 flex justify-between items-center no-print">
-                <div class="flex items-center gap-4">
-                    <span class="text-xs font-bold text-slate-600">الإجابات</span>
-                    <label class="switch"><input type="checkbox" id="toggleAnswers" onchange="if(window.examData) window.renderExam()"><span class="slider"></span></label>
+        <!-- Preview Area (الشاشة الثانية للمعاينة) -->
+        <div id="previewArea" class="hidden max-w-5xl mx-auto flex-col transition-all duration-500 w-full">
+            <div id="toolbar" class="glass-card p-4 rounded-2xl mb-5 flex justify-between items-center no-print flex-wrap gap-4">
+                <div class="flex items-center gap-3">
+                    <button onclick="goBackToEdit()" class="bg-blue-100 text-blue-700 px-4 py-2 rounded-xl text-sm font-bold hover:bg-blue-200 transition-colors flex items-center gap-2 shadow-sm">
+                        <i class="fa-solid fa-arrow-right"></i> عودة للتعديل
+                    </button>
+                    <span class="text-sm font-bold text-slate-600 border-r-2 border-slate-200 pr-3">معاينة الورقة</span>
                 </div>
                 <div class="flex gap-2">
-                    <button id="saveLibBtn" onclick="saveToLibrary()" class="bg-emerald-50 text-emerald-600 px-3 py-2 rounded-xl text-xs font-bold border border-emerald-100 hover:bg-emerald-100"><i class="fa-solid fa-bookmark"></i> حفظ</button>
+                    <button id="saveLibBtn" onclick="saveToLibrary()" class="bg-emerald-50 text-emerald-600 px-3 py-2 rounded-xl text-xs font-bold border border-emerald-100 hover:bg-emerald-100"><i class="fa-solid fa-bookmark"></i> حفظ محلي</button>
                     <button onclick="exportPDF()" class="bg-rose-50 text-rose-600 px-3 py-2 rounded-xl text-xs font-bold border border-rose-100 hover:bg-rose-100"><i class="fa-solid fa-file-pdf"></i> PDF</button>
                     <button onclick="exportWord()" class="bg-blue-50 text-blue-600 px-3 py-2 rounded-xl text-xs font-bold border border-blue-100 hover:bg-blue-100"><i class="fa-solid fa-file-word"></i> Word</button>
                 </div>
@@ -191,13 +159,15 @@
                 </div>
                 <div id="placeholder" class="flex flex-col items-center justify-center text-slate-400 py-32 text-center">
                     <i class="fa-solid fa-file-lines text-8xl opacity-10 mb-6"></i>
-                    <h3 class="text-lg font-bold text-slate-500">جاهز للتوليد</h3>
+                    <h3 class="text-lg font-bold text-slate-500">الورقة جاهزة للتنسيق</h3>
+                    <p class="text-xs mt-2">قم بلصق الأسئلة واضغط على "تنسيق وترتيب"</p>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Modal التنبيهات -->
 <div id="alertModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl text-center">
         <h4 id="modalTitle" class="text-lg font-bold mb-2"></h4>
@@ -206,140 +176,51 @@
     </div>
 </div>
 
+<!-- Modal المكتبة -->
 <div id="libraryModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[80vh] flex flex-col shadow-2xl overflow-hidden">
         <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-indigo-50">
-            <h3 class="font-bold text-indigo-900 flex items-center gap-2"><i class="fa-solid fa-book-bookmark text-indigo-600"></i> مكتبتي (الأسئلة المحفوظة)</h3>
+            <h3 class="font-bold text-indigo-900 flex items-center gap-2"><i class="fa-solid fa-book-bookmark text-indigo-600"></i> مكتبتي (محفوظة في المتصفح)</h3>
             <button onclick="document.getElementById('libraryModal').classList.add('hidden')" class="text-slate-400 hover:text-rose-500"><i class="fa-solid fa-xmark text-xl"></i></button>
         </div>
         <div id="libraryContent" class="p-5 flex-1 overflow-y-auto space-y-3 custom-scrollbar bg-slate-50">
-            <div class="text-center py-10 text-slate-400 text-sm">جاري التحميل...</div>
+            <!-- سيتم تحميل المحتوى المحفوظ هنا -->
         </div>
     </div>
 </div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-    // ⬇️ ضع مفتاح API الخاص بك هنا بين علامتي التنصيص ⬇️
-    const apiKey = ""; 
-    
+<script>
     const DEFAULT_LOGO = "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Ministry_of_Education_Saudi_Arabia.svg/200px-Ministry_of_Education_Saudi_Arabia.svg.png";
-    window.examData = null;
     let logoBase64 = DEFAULT_LOGO;
+    let currentRawText = "";
 
-    let app, auth, db;
-    let isFirebaseEnabled = false;
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-    
-    try {
-        const firebaseConfigStr = typeof __firebase_config !== 'undefined' ? __firebase_config : null;
-        if (firebaseConfigStr) {
-            const firebaseConfig = JSON.parse(firebaseConfigStr);
-            app = initializeApp(firebaseConfig);
-            auth = getAuth(app);
-            db = getFirestore(app);
-            isFirebaseEnabled = true;
+    function initPdfJs() { 
+        if (typeof window['pdfjs-dist/build/pdf'] !== 'undefined') {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js'; 
         }
-    } catch (err) { console.warn("Firebase Local Mode"); }
-    
-    let currentUser = null;
-    let libraryUnsubscribe = null;
-
-    const initAuth = async () => {
-        if (!isFirebaseEnabled) return; 
-        try {
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                await signInWithCustomToken(auth, __initial_auth_token);
-            } else {
-                await signInAnonymously(auth);
-            }
-        } catch (err) { console.error("Auth error:", err); }
-    };
-    initAuth();
-
-    if (isFirebaseEnabled) {
-        onAuthStateChanged(auth, (user) => {
-            currentUser = user;
-            if (user) {
-                const libRef = collection(db, 'artifacts', appId, 'users', user.uid, 'library');
-                libraryUnsubscribe = onSnapshot(libRef, (snapshot) => {
-                    const exams = [];
-                    snapshot.forEach(doc => exams.push({ id: doc.id, ...doc.data() }));
-                    renderLibraryUI(exams);
-                }, (err) => console.error("Snapshot error:", err));
-            } else { if (libraryUnsubscribe) libraryUnsubscribe(); }
-        });
-    } else {
-        document.getElementById('libraryContent').innerHTML = '<div class="text-center py-10 text-slate-400 text-sm">ميزة السحابة متاحة فقط عند الرفع على موقع.</div>';
     }
-
-    function renderLibraryUI(exams) {
-        const container = document.getElementById('libraryContent');
-        if (exams.length === 0) {
-            container.innerHTML = '<div class="text-center py-10 text-slate-400 text-sm">المكتبة فارغة.</div>';
-            return;
-        }
-        exams.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        container.innerHTML = exams.map(exam => `
-            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex justify-between items-center hover:border-indigo-300 transition-colors">
-                <div><h4 class="font-bold text-slate-800 text-sm mb-1">${exam.title}</h4></div>
-                <div class="flex gap-2">
-                    <button onclick="loadFromLibrary('${exam.id}', '${exam.data.replace(/'/g, "\\'")}')" class="bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg text-xs font-bold">استرجاع</button>
-                    <button onclick="deleteFromLibrary('${exam.id}')" class="bg-rose-50 text-rose-600 px-3 py-1.5 rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>
-                </div>
-            </div>`).join('');
-    }
-
-    window.saveToLibrary = async function() {
-        if (!isFirebaseEnabled) { window.showModal("تنبيه", "الحفظ السحابي غير متاح محلياً."); return; }
-        if (!currentUser || !window.examData) return;
-        const btn = document.getElementById('saveLibBtn');
-        btn.disabled = true;
-        try {
-            const title = document.getElementById('examTitle').value || 'اختبار جديد';
-            const libRef = doc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'library'));
-            await setDoc(libRef, { title, data: JSON.stringify(window.examData), createdAt: new Date().toISOString() });
-            window.showModal("نجاح", "تم الحفظ.");
-        } catch (e) { window.showModal("خطأ", "فشل الحفظ."); } finally { btn.disabled = false; }
-    };
-
-    window.loadFromLibrary = function(id, dataStr) {
-        try {
-            window.examData = JSON.parse(dataStr);
-            window.renderExam();
-            document.getElementById('libraryModal').classList.add('hidden');
-            document.getElementById('placeholder').classList.add('hidden');
-            document.getElementById('exam-paper').classList.remove('hidden');
-            document.getElementById('toolbar').classList.remove('hidden');
-        } catch(e) {}
-    };
-
-    window.deleteFromLibrary = async function(id) {
-        if(!currentUser) return;
-        try { await deleteDoc(doc(db, 'artifacts', appId, 'users', currentUser.uid, 'library', id)); } catch(e) {}
-    };
-
-    function initPdfJs() { if (typeof pdfjsLib !== 'undefined') pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js'; }
     window.onload = initPdfJs;
 
-    document.getElementById('toggleHeaderBtn').addEventListener('click', () => document.getElementById('headerSettings').classList.toggle('hidden'));
+    // Toggle Header Settings
+    document.getElementById('toggleHeaderBtn').addEventListener('click', () => {
+        document.getElementById('headerSettings').classList.toggle('hidden');
+    });
+    
+    // File Upload Handlers
     document.getElementById('dropZone').addEventListener('click', () => document.getElementById('fileInput').click());
     
     document.getElementById('logoInput').addEventListener('change', e => {
         const file = e.target.files[0];
         if(!file) return;
         const reader = new FileReader();
-        reader.onload = ev => { logoBase64 = ev.target.result; document.getElementById('logoPreviewImg').src = logoBase64; if(window.examData) window.renderExam(); };
+        reader.onload = ev => { logoBase64 = ev.target.result; document.getElementById('logoPreviewImg').src = logoBase64; if(currentRawText) renderExam(); };
         reader.readAsDataURL(file);
     });
     
     document.getElementById('resetLogo').addEventListener('click', () => {
         logoBase64 = DEFAULT_LOGO;
         document.getElementById('logoPreviewImg').src = logoBase64;
-        if(window.examData) window.renderExam();
+        if(currentRawText) renderExam();
     });
 
     document.getElementById('fileInput').addEventListener('change', async e => {
@@ -363,166 +244,231 @@
                 text = res.value;
             } else if (fileName.endsWith('.txt')) { text = await file.text(); }
             document.getElementById('textContent').value = text;
-            status.innerText = "✓ تم التحميل";
-        } catch (err) { status.innerText = "✗ خطأ في القراءة"; }
-    });
-
-    document.getElementById('generateBtn').addEventListener('click', async () => {
-        const content = document.getElementById('textContent').value.trim();
-        if(!content) { window.showModal("تنبيه", "يرجى إدخال المحتوى أولاً."); return; }
-        
-        const btn = document.getElementById('generateBtn');
-        const status = document.getElementById('mainStatus');
-        
-        const isInCanvas = (typeof __app_id !== 'undefined' && __app_id !== 'default-app-id');
-
-        if(!apiKey && !isInCanvas) {
-            window.showModal("مطلوب مفتاح API", "يرجى فتح الكود باستخدام محرر نصوص ووضع مفتاح API الجديد الخاص بك في سطر (const apiKey).");
-            return;
-        }
-
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري التوليد...';
-        status.classList.remove('hidden');
-        status.innerText = "جاري الاتصال بالذكاء الاصطناعي...";
-        
-        const prompt = `أنشئ اختباراً من النص: ${content.substring(0, 15000)} بالعدد: MCQ:${document.getElementById('countMCQ').value}, TF:${document.getElementById('countTF').value}, Match:${document.getElementById('countMatch').value}, Fill:${document.getElementById('countFill').value}. التزم بصيغة JSON فقط.`;
-        const systemPrompt = `أنت خبير تربوي. المخرجات JSON فقط.`;
-
-        // قائمة النماذج لتجربتها بالترتيب
-        const modelsToTry = isInCanvas ? ["gemini-2.5-flash-preview-09-2025"] : ["gemini-1.5-flash", "gemini-pro", "gemini-1.0-pro"];
-        let success = false;
-        let responseText = "";
-        let lastError = "";
-
-        for (const model of modelsToTry) {
-            try {
-                status.innerText = "جاري المحاولة مع (" + model + ")...";
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-                
-                // بناء الطلب الأساسي
-                const payload = {
-                    contents: [{ parts: [{ text: systemPrompt + "\n\n" + prompt }] }],
-                    generationConfig: { temperature: 0.7 }
-                };
-
-                // إذا كان النموذج حديثاً (1.5)، نستخدم الخصائص المتقدمة التي لا يدعمها القديم
-                if (model.includes("1.5") || model.includes("2.5")) {
-                    payload.contents = [{ parts: [{ text: prompt }] }];
-                    payload.systemInstruction = { parts: [{ text: systemPrompt }] };
-                    payload.generationConfig.responseMimeType = "application/json";
-                }
-                
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(data.error?.message || "خطأ " + response.status);
-                }
-
-                if (data.candidates && data.candidates.length > 0) {
-                    responseText = data.candidates[0].content.parts[0].text;
-                    success = true;
-                    break; // تم النجاح، نخرج من حلقة المحاولات
-                } else {
-                    throw new Error("رد فارغ من الخادم.");
-                }
-
-            } catch (err) {
-                lastError = err.message;
-                console.warn("فشل النموذج " + model + ": " + lastError);
-                
-                if (lastError.includes("API_KEY_INVALID")) {
-                    lastError = "المفتاح غير صحيح. تأكد من أنك نسخته بالكامل دون أي مسافات إضافية.";
-                    break; // لا تكمل مع مفتاح خاطئ
-                }
-            }
-        }
-
-        try {
-            if (!success) {
-                let errorMsg = lastError;
-                if (errorMsg.includes("is not found")) {
-                    errorMsg = "حسابك لا يدعم أي من نماذج الذكاء الاصطناعي الحالية. جرب حساب Google مختلف.";
-                }
-                throw new Error(errorMsg);
-            }
-
-            // تنظيف النص بذكاء في حال استخدام نموذج قديم أضاف نصوصاً خارج الـ JSON
-            responseText = responseText.replace(/```json/gi, "").replace(/```/g, "").trim();
-            const firstBrace = responseText.indexOf('{');
-            const lastBrace = responseText.lastIndexOf('}');
-            if (firstBrace !== -1 && lastBrace !== -1) {
-                responseText = responseText.substring(firstBrace, lastBrace + 1);
-            }
-
-            window.examData = JSON.parse(responseText);
-            window.renderExam();
-            
-            document.getElementById('placeholder').classList.add('hidden');
-            document.getElementById('exam-paper').classList.remove('hidden');
-            document.getElementById('toolbar').classList.remove('hidden');
-            status.innerText = "تم بنجاح!";
-
+            status.innerText = "✓ تم التحميل واللصق";
+            setTimeout(() => status.classList.add('hidden'), 3000);
         } catch (err) { 
-            status.innerText = "فشل التوليد.";
-            window.showModal("خطأ تقني", "تفاصيل المشكلة: " + err.message);
-        } finally { 
-            btn.disabled = false; 
-            btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> <span>توليد الاختبار</span>'; 
+            status.className = "text-xs text-center text-red-600 mt-2 block";
+            status.innerText = "✗ حدث خطأ في قراءة الملف"; 
         }
     });
 
-    window.renderExam = function() {
-        if(!window.examData) return;
-        const examData = window.examData;
-        const showAns = document.getElementById('toggleAnswers').checked;
-        const v = id => document.getElementById(id).value;
+    // Generate/Format Action
+    document.getElementById('generateBtn').addEventListener('click', () => {
+        const content = document.getElementById('textContent').value.trim();
+        if(!content) { 
+            showModal("تنبيه", "يرجى لصق الأسئلة أو كتابتها أولاً في المربع المخصص."); 
+            return; 
+        }
         
+        currentRawText = content;
+        renderExam();
+        
+        // إخفاء الشاشة الأولى وإظهار الشاشة الثانية
+        document.getElementById('controlPanel').classList.add('hidden');
+        document.getElementById('previewArea').classList.remove('hidden');
+        document.getElementById('previewArea').classList.add('flex');
+        
+        document.getElementById('placeholder').classList.add('hidden');
+        document.getElementById('exam-paper').classList.remove('hidden');
+        
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    // زر العودة
+    window.goBackToEdit = function() {
+        document.getElementById('previewArea').classList.add('hidden');
+        document.getElementById('previewArea').classList.remove('flex');
+        document.getElementById('controlPanel').classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    // الدالة الذكية لتنسيق الأسئلة
+    function renderExam() {
+        if(!currentRawText) return;
+        
+        const v = id => document.getElementById(id).value;
         const fixRTL = (s) => '&#x200F;' + (s||'').trim().replace(/ /g, '&nbsp;') + '&#x200F;';
         const vf = id => fixRTL(v(id));
+
+        let formattedText = '';
+        let questionCounter = 1;
+        let lines = currentRawText.split('\n');
+        
+        lines.forEach(line => {
+            let tLine = line.trim();
+            if (!tLine) return;
+
+            // الحفاظ على المسافات بدقة للخيارات المتلاصقة لمنع اختفائها
+            let safeLine = line.replace(/\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;').replace(/  +/g, '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');
+
+            // حل جذري لمشكلة انعكاس الشرطة (-) في الـ PDF بفصل الشرطة برمجياً عن الحرف
+            safeLine = safeLine.replace(/^([أبجد])\s*[-]/, '<span style="display:inline-block;">$1</span><span style="display:inline-block; margin-right:3px; margin-left:3px;">-</span>');
+
+            // 1. هل هو عنوان رئيسي؟ (يحتوي على كلمات دلالية معينة)
+            let isHeader = tLine.includes('السؤال الأول') || tLine.includes('السؤال الثاني') || tLine.includes('السؤال الثالث') || tLine.includes('السؤال الرابع') || tLine.includes('السؤال الخامس') || tLine.includes('أولاً') || tLine.includes('ثانياً') || tLine.includes('اختر الإجابة') || tLine.includes('ضع علامة') || tLine.includes('أكمل الفراغ') || tLine.includes('زاوج') || tLine.includes('صل بين');
+
+            // 2. هل هو سؤال؟ (يبدأ برقم متبوع بشرطة أو قوس، أو يبدأ بكلمة س1، أو ينتهي بعلامة استفهام)
+            let qRegex = /^((س\s*\d+)|(\d+\s*[\-\.\)]))/;
+            let isQuestion = qRegex.test(tLine) || tLine.endsWith('؟') || tLine.endsWith('?');
+
+            // عملية البناء والتنسيق
+            if (isHeader) {
+                // تصفير العداد إذا كان القسم هو السؤال الأول أو أولاً
+                if (tLine.includes('السؤال الأول') || tLine.includes('أولاً')) {
+                    questionCounter = 1;
+                }
+                formattedText += `<div style="background-color: #f1f5f9; border-right: 4px solid #1e3a8a; padding: 10px 15px; margin-top: 30px; margin-bottom: 20px; font-weight: bold; font-size: 16px; color: #0f172a; border-radius: 4px; page-break-inside: avoid;">${safeLine}</div>`;
+            } 
+            else if (isQuestion) {
+                // مسح الترقيم العشوائي القديم الذي وضعه المستخدم (إن وجد) لتوحيد الترقيم
+                let cleanQ = tLine.replace(qRegex, '').trim();
+                if (cleanQ.startsWith('-') || cleanQ.startsWith('.')) cleanQ = cleanQ.substring(1).trim();
+                
+                // رسم الخط الفاصل، وكتابة السؤال بلون وترقيم جديدين (مع فصل الرقم عن الشرطة لمنع الانقلاب بالـ PDF)
+                formattedText += `
+                    <div style="border-top: 1px dashed #cbd5e1; margin-top: 20px; padding-top: 15px; page-break-inside: avoid;">
+                        <b style="color: #1e3a8a; font-size: 16px; display: block; margin-bottom: 8px;">
+                            <span style="display:inline-block;">${questionCounter}</span><span style="display:inline-block; margin-right:4px; margin-left:4px;">-</span> ${cleanQ || safeLine}
+                        </b>
+                    </div>`;
+                questionCounter++;
+            } 
+            else {
+                // إذا لم يكن عنواناً ولا سؤالاً، فهو بالتأكيد (نص أو خيارات أ ب ج د) تابعة للسؤال
+                formattedText += `<div style="padding-right: 25px; margin-bottom: 5px; color: #334155; page-break-inside: avoid;">${safeLine}</div>`;
+            }
+        });
 
         let html = `
         <table style="width: 100%; border-bottom: 2px solid #1e3a8a; margin-bottom: 20px; direction: rtl; border-collapse: collapse;">
             <tr>
-                <td style="width:33%; text-align:center; font-size:12px;">${vf('hR1')}<br>${vf('hR2')}<br>${vf('hEduDept')}<br>${vf('hSchool')}</td>
-                <td style="width:34%; text-align:center;"><img src="${logoBase64}" style="height:70px;"><br><b>${v('examTitle')}</b></td>
-                <td style="width:33%; text-align:left; font-size:12px;"><div style="display:inline-block; text-align:right;">${vf('hL1')}<br>${vf('hL2')}<br>${vf('hTime')}<br>${vf('hDate')}</div></td>
+                <td style="width:33%; text-align:center; vertical-align:top; font-size:13px; line-height:1.6;">${vf('hR1')}<br>${vf('hR2')}<br>${vf('hEduDept')}<br>${vf('hSchool')}</td>
+                <td style="width:34%; text-align:center; vertical-align:top;">
+                    <img src="${logoBase64}" style="height:110px; max-width:100%; object-fit:contain; margin: 0 auto;">
+                    <div style="margin-top: 10px;"><b>${v('examTitle')}</b></div>
+                </td>
+                <td style="width:33%; text-align:left; vertical-align:top; font-size:13px; line-height:1.6;"><div style="display:inline-block; text-align:right;">${vf('hL1')}<br>${vf('hL2')}<br>${vf('hTime')}<br>${vf('hDate')}</div></td>
             </tr>
         </table>
-        <div style="border:1px solid #000; padding:10px; margin-bottom:20px; display:flex; justify-content:space-between; direction:rtl;">
-            <div>${vf('hStudentName')} &nbsp; ${vf('hAcademicNum')} &nbsp; ${vf('hSection')}</div>
-            <div style="border:1px solid #000; width:40px; height:40px; border-radius:50%; text-align:center; line-height:40px;">/</div>
-        </div>`;
-
-        const addQ = (list, title, type) => {
-            if(!list || !list.length) return '';
-            let res = `<hr style="border:1px dashed #ccc; margin:20px 0;"><div style="direction:rtl; text-align:right;"><b>${title}</b>`;
-            list.forEach((it, i) => {
-                res += `<div style="margin:10px 0; page-break-inside:avoid;">${i+1}) ${it.q} ${showAns ? `<span style="color:green;">[${it.answer}]</span>`:''}</div>`;
-            });
-            return res + `</div>`;
-        };
-
-        html += addQ(examData.mcq, "السؤال الأول: اختر الإجابة الصحيحة:");
-        html += addQ(examData.tf, "السؤال الثاني: صح أم خطأ:");
-        html += addQ(examData.fill, "السؤال الثالث: أكمل الفراغات:");
         
+        <!-- قسم بيانات الطالب بعد توسعته وإعادة ترتيبه وإزاحة الدائرة لليمين -->
+        <div style="border:1px solid #000; padding:15px 20px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; direction:rtl; font-size: 15px; font-weight: bold;">
+            <div style="flex: 1; display: flex; justify-content: space-between; align-items: center;">
+                <div style="flex: 2; text-align: right;">${vf('hStudentName')}</div>
+                <div style="flex: 1.5; text-align: center;">${vf('hAcademicNum')}</div>
+                <div style="flex: 1; text-align: left;">${vf('hSection')}</div>
+            </div>
+            <!-- دائرة الدرجة مقسومة بخط أفقي (مزاحة لليمين 45 بيكسل) -->
+            <div style="border:1px solid #000; width:50px; height:50px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink: 0; background-color: #fff; margin-left: 45px;">
+                <div style="width: 30px; border-top: 1.5px solid #000;"></div>
+            </div>
+        </div>
+        
+        <div style="direction:rtl; text-align:right; font-size:15px; line-height:2.0; font-family:'Tajawal', sans-serif;">
+            ${formattedText}
+        </div>
+        `;
+
         document.getElementById('paper-content').innerHTML = html;
     }
 
-    window.exportPDF = function() { html2pdf().from(document.getElementById('exam-paper')).save(); };
+    // ميزة الحفظ المحلي (Local Storage)
+    window.saveToLibrary = function() {
+        if(!currentRawText) return;
+        const title = document.getElementById('examTitle').value || 'اختبار بدون عنوان';
+        const newExam = {
+            id: Date.now().toString(),
+            title: title,
+            text: currentRawText,
+            logo: logoBase64,
+            date: new Date().toLocaleDateString('ar-SA')
+        };
+        
+        let library = JSON.parse(localStorage.getItem('myExamsLibrary') || '[]');
+        library.push(newExam);
+        localStorage.setItem('myExamsLibrary', JSON.stringify(library));
+        
+        showModal("نجاح", "تم حفظ الاختبار في متصفحك بنجاح. يمكنك استعادته لاحقاً من زر مكتبتي.");
+    };
+
+    window.loadLibraryUI = function() {
+        const container = document.getElementById('libraryContent');
+        let library = JSON.parse(localStorage.getItem('myExamsLibrary') || '[]');
+        
+        if (library.length === 0) {
+            container.innerHTML = '<div class="text-center py-10 text-slate-400 text-sm">المكتبة فارغة حالياً. قم بحفظ اختباراتك أولاً.</div>';
+            return;
+        }
+        
+        library.sort((a, b) => b.id - a.id);
+        container.innerHTML = library.map(exam => `
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex justify-between items-center hover:border-indigo-300 transition-colors">
+                <div>
+                    <h4 class="font-bold text-slate-800 text-sm mb-1">${exam.title}</h4>
+                    <span class="text-[10px] text-slate-400">${exam.date}</span>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="loadFromLibrary('${exam.id}')" class="bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg text-xs font-bold">استرجاع</button>
+                    <button onclick="deleteFromLibrary('${exam.id}')" class="bg-rose-50 text-rose-600 px-3 py-1.5 rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            </div>`).join('');
+    };
+
+    window.loadFromLibrary = function(id) {
+        let library = JSON.parse(localStorage.getItem('myExamsLibrary') || '[]');
+        const exam = library.find(e => e.id === id);
+        if(exam) {
+            document.getElementById('textContent').value = exam.text;
+            currentRawText = exam.text;
+            if(exam.logo) logoBase64 = exam.logo;
+            document.getElementById('examTitle').value = exam.title;
+            
+            renderExam();
+            
+            document.getElementById('libraryModal').classList.add('hidden');
+            
+            document.getElementById('controlPanel').classList.add('hidden');
+            document.getElementById('previewArea').classList.remove('hidden');
+            document.getElementById('previewArea').classList.add('flex');
+            
+            document.getElementById('placeholder').classList.add('hidden');
+            document.getElementById('exam-paper').classList.remove('hidden');
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    };
+
+    window.deleteFromLibrary = function(id) {
+        let library = JSON.parse(localStorage.getItem('myExamsLibrary') || '[]');
+        library = library.filter(e => e.id !== id);
+        localStorage.setItem('myExamsLibrary', JSON.stringify(library));
+        loadLibraryUI(); 
+    };
+
+    // التصدير
+    window.exportPDF = function() { 
+        const element = document.getElementById('exam-paper');
+        const opt = {
+            margin:       0,
+            filename:     'exam.pdf',
+            image:        { type: 'jpeg', quality: 1.0 },
+            html2canvas:  { scale: 2, backgroundColor: '#ffffff' },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(element).save(); 
+    };
+    
     window.exportWord = function() { 
-        const blob = new Blob([document.getElementById("exam-paper").innerHTML], {type:'application/msword'});
+        const blob = new Blob(['\ufeff', document.getElementById("exam-paper").innerHTML], {type:'application/msword'});
         const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "exam.doc"; link.click();
     };
-    window.showModal = function(title, msg) { document.getElementById('modalTitle').innerText = title; document.getElementById('modalMsg').innerText = msg; document.getElementById('alertModal').classList.remove('hidden'); }
-    window.closeModal = function() { document.getElementById('alertModal').classList.add('hidden'); }
+    
+    window.showModal = function(title, msg) { 
+        document.getElementById('modalTitle').innerText = title; 
+        document.getElementById('modalMsg').innerText = msg; 
+        document.getElementById('alertModal').classList.remove('hidden'); 
+    };
+    window.closeModal = function() { document.getElementById('alertModal').classList.add('hidden'); };
 </script>
 </body>
 </html>
