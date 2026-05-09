@@ -224,7 +224,7 @@
     import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     // ⬇️ ضع مفتاح API الخاص بك هنا بين علامتي التنصيص ⬇️
-    const apiKey = "AIzaSyDxzJ9oppAbWKtWIl7U12xTo2HBNwtzix8"; 
+    const apiKey = ""; 
     
     const DEFAULT_LOGO = "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0d/Ministry_of_Education_Saudi_Arabia.svg/200px-Ministry_of_Education_Saudi_Arabia.svg.png";
     window.examData = null;
@@ -389,46 +389,85 @@
         const prompt = `أنشئ اختباراً من النص: ${content.substring(0, 15000)} بالعدد: MCQ:${document.getElementById('countMCQ').value}, TF:${document.getElementById('countTF').value}, Match:${document.getElementById('countMatch').value}, Fill:${document.getElementById('countFill').value}. التزم بصيغة JSON فقط.`;
         const systemPrompt = `أنت خبير تربوي. المخرجات JSON فقط.`;
 
-        try {
-            // نستخدم الإصدار الأقوى والأحدث للذكاء الاصطناعي
-            const modelToUse = isInCanvas ? "gemini-2.5-flash-preview-09-2025" : "gemini-1.5-flash";
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:generateContent?key=${apiKey}`;
-            
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }],
-                    systemInstruction: { parts: [{ text: systemPrompt }] },
-                    generationConfig: { temperature: 0.7, responseMimeType: "application/json" }
-                })
-            });
+        // قائمة النماذج لتجربتها بالترتيب
+        const modelsToTry = isInCanvas ? ["gemini-2.5-flash-preview-09-2025"] : ["gemini-1.5-flash", "gemini-pro", "gemini-1.0-pro"];
+        let success = false;
+        let responseText = "";
+        let lastError = "";
 
-            const data = await response.json();
-
-            if (!response.ok) {
-                let errorMessage = data.error?.message || `خطأ في الخادم ${response.status}`;
-                if (errorMessage.includes("is not found")) {
-                    errorMessage = "المفتاح الذي وضعته لا يدعم الإصدارات الحديثة من الذكاء الاصطناعي. يرجى استخراج مفتاح جديد من Google AI Studio.";
-                } else if (errorMessage.includes("API_KEY_INVALID")) {
-                    errorMessage = "المفتاح غير صحيح. تأكد من أنك نسخته بالكامل دون أي مسافات إضافية.";
-                }
-                throw new Error(errorMessage);
-            }
-
-            if (data.candidates && data.candidates.length > 0) {
-                let responseText = data.candidates[0].content.parts[0].text;
-                responseText = responseText.replace(/```json/g, "").replace(/```/g, "").trim();
-                window.examData = JSON.parse(responseText);
-                window.renderExam();
+        for (const model of modelsToTry) {
+            try {
+                status.innerText = "جاري المحاولة مع (" + model + ")...";
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
                 
-                document.getElementById('placeholder').classList.add('hidden');
-                document.getElementById('exam-paper').classList.remove('hidden');
-                document.getElementById('toolbar').classList.remove('hidden');
-                status.innerText = "تم بنجاح!";
-            } else {
-                throw new Error("لم يتم تلقي بيانات من الذكاء الاصطناعي.");
+                // بناء الطلب الأساسي
+                const payload = {
+                    contents: [{ parts: [{ text: systemPrompt + "\n\n" + prompt }] }],
+                    generationConfig: { temperature: 0.7 }
+                };
+
+                // إذا كان النموذج حديثاً (1.5)، نستخدم الخصائص المتقدمة التي لا يدعمها القديم
+                if (model.includes("1.5") || model.includes("2.5")) {
+                    payload.contents = [{ parts: [{ text: prompt }] }];
+                    payload.systemInstruction = { parts: [{ text: systemPrompt }] };
+                    payload.generationConfig.responseMimeType = "application/json";
+                }
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error?.message || "خطأ " + response.status);
+                }
+
+                if (data.candidates && data.candidates.length > 0) {
+                    responseText = data.candidates[0].content.parts[0].text;
+                    success = true;
+                    break; // تم النجاح، نخرج من حلقة المحاولات
+                } else {
+                    throw new Error("رد فارغ من الخادم.");
+                }
+
+            } catch (err) {
+                lastError = err.message;
+                console.warn("فشل النموذج " + model + ": " + lastError);
+                
+                if (lastError.includes("API_KEY_INVALID")) {
+                    lastError = "المفتاح غير صحيح. تأكد من أنك نسخته بالكامل دون أي مسافات إضافية.";
+                    break; // لا تكمل مع مفتاح خاطئ
+                }
             }
+        }
+
+        try {
+            if (!success) {
+                let errorMsg = lastError;
+                if (errorMsg.includes("is not found")) {
+                    errorMsg = "حسابك لا يدعم أي من نماذج الذكاء الاصطناعي الحالية. جرب حساب Google مختلف.";
+                }
+                throw new Error(errorMsg);
+            }
+
+            // تنظيف النص بذكاء في حال استخدام نموذج قديم أضاف نصوصاً خارج الـ JSON
+            responseText = responseText.replace(/```json/gi, "").replace(/```/g, "").trim();
+            const firstBrace = responseText.indexOf('{');
+            const lastBrace = responseText.lastIndexOf('}');
+            if (firstBrace !== -1 && lastBrace !== -1) {
+                responseText = responseText.substring(firstBrace, lastBrace + 1);
+            }
+
+            window.examData = JSON.parse(responseText);
+            window.renderExam();
+            
+            document.getElementById('placeholder').classList.add('hidden');
+            document.getElementById('exam-paper').classList.remove('hidden');
+            document.getElementById('toolbar').classList.remove('hidden');
+            status.innerText = "تم بنجاح!";
 
         } catch (err) { 
             status.innerText = "فشل التوليد.";
