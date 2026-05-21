@@ -11,7 +11,6 @@
     <!-- مكتبات معالجة الملفات -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
-    <!-- استعادة مكتبة تحويل الـ PDF بعد ترويضها لدعم العربية -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <style>
@@ -132,7 +131,6 @@
 <body class="p-4 md:p-6 custom-scrollbar">
 
 <div class="max-w-7xl mx-auto">
-    <!-- Header Area -->
     <header class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 no-print">
         <div class="flex items-center gap-4">
             <div class="bg-blue-900 text-white p-3 rounded-2xl shadow-lg">
@@ -151,7 +149,6 @@
     </header>
 
     <div id="mainContainer">
-        <!-- Control Panel -->
         <div id="controlPanel" class="max-w-4xl mx-auto space-y-6 no-print transition-all duration-500">
             
             <div class="glass-card p-5 rounded-2xl shadow-sm space-y-4">
@@ -283,7 +280,6 @@
                 </div>
             </div>
 
-            <!-- لوحة التحكم الجديدة: الخطوط، الأرقام، والهوامش -->
             <div class="glass-card p-4 rounded-2xl shadow-sm bg-white border-slate-200">
                 <h3 class="font-bold text-slate-700 text-sm flex items-center gap-2 mb-3 border-b pb-2"><i class="fa-solid fa-sliders text-indigo-500"></i> الإعدادات المتقدمة (الخطوط، الأرقام، والهوامش)</h3>
                 
@@ -386,7 +382,6 @@
             </button>
         </div>
 
-        <!-- Preview Area -->
         <div id="previewArea" class="hidden max-w-5xl mx-auto flex-col transition-all duration-500 w-full">
             <div id="toolbar" class="glass-card p-4 rounded-2xl mb-5 flex justify-between items-center no-print flex-wrap gap-4">
                 <div class="flex items-center gap-3">
@@ -402,7 +397,6 @@
                 <div class="flex gap-2 items-center">
                     <button onclick="saveToLibrary()" class="bg-emerald-50 text-emerald-600 px-3 py-2 rounded-xl text-xs font-bold border border-emerald-100 hover:bg-emerald-100"><i class="fa-solid fa-bookmark"></i> حفظ محلي</button>
                     <button onclick="exportWord()" class="bg-blue-50 text-blue-600 px-3 py-2 rounded-xl text-xs font-bold border border-blue-100 hover:bg-blue-100"><i class="fa-solid fa-file-word"></i> حفظ Word</button>
-                    <!-- عودة زر حفظ الـ PDF ليعمل عن طريق المكتبة مباشرة بدون حظر -->
                     <button onclick="exportPDF()" class="bg-rose-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-rose-700 shadow-md flex items-center gap-2">
                         <i class="fa-solid fa-file-pdf"></i> <span>حفظ PDF</span>
                     </button>
@@ -564,13 +558,11 @@
         loadHeaderDefaults();
     };
 
-    // حماية الأقواس لمنع مكتبة الـ PDF من التلاعب بها وعكسها
     function protectBrackets(text) {
         if (!text) return text;
         return text.replace(/\(/g, '&#xFF08;').replace(/\)/g, '&#xFF09;');
     }
 
-    // فلتر احترافي ونظيف لتحويل الأرقام دون المساس بهيكل الصفحة
     function localizeNumbers(htmlString, format) {
         if (!htmlString) return htmlString;
         if (format !== 'ar') return htmlString;
@@ -741,9 +733,8 @@
             let plainText = tempDiv.textContent || tempDiv.innerText;
             
             plainText = plainText.replace(/(^|\s)(\(\s*(?:[أبجدهوزحطيكلمن]|هـ)\s*\))\s*\n\s*/gm, '$1$2 ');
-            
-            plainText = plainText.replace(/(^|\s)[-\\.‑–—−]\s*([أبجدهوزحطيكلمن]|هـ)\s*/g, '$1$2- ');
-            plainText = plainText.replace(/(^|\s)([أبجدهوزحطيكلمن]|هـ)\s+[-\\.‑–—−]\s+/g, '$1$2- ');
+            plainText = plainText.replace(/(^|\s)[-\\.‑–—−]\s*([أبجدهوزحطيكلمن]|هـ)\s*/g, '$1$2 - ');
+            plainText = plainText.replace(/(^|\s)([أبجدهوزحطيكلمن]|هـ)\s+[-\\.‑–—−]\s+/g, '$1$2 - ');
 
             let lines = plainText.split('\n');
             let newHtml = '';
@@ -831,21 +822,27 @@
             parsedMatch.forEach((item, index) => {
                 let letter = letters[index % letters.length];
                 let currentB = answers[index] || '...';
+                
+                // استخدام span لتثبيت الأرقام والحروف والشرطة بدون انعكاس
+                let numDisplay = `<span style="display:inline-block">${index + 1}</span><span style="display:inline-block; margin-right:2px;">-</span>`;
+                let letterDisplay = `<span style="display:inline-block">${letter}</span><span style="display:inline-block; margin-right:2px;">-</span>`;
+                
                 html += `<tr>
-                    <td style="border: 1px solid #000; padding: 8px;">${index + 1}- ${item.a}</td>
+                    <td style="border: 1px solid #000; padding: 8px;">${numDisplay} ${item.a}</td>
                     <td style="border: 1px solid #000; padding: 8px;">${brackets}</td>
-                    <td style="border: 1px solid #000; padding: 8px;">${letter}- ${currentB}</td>
+                    <td style="border: 1px solid #000; padding: 8px;">${letterDisplay} ${currentB}</td>
                 </tr>`;
             });
             html += `</tbody></table><div><br></div>`;
         } else {
             selectedQuestions.forEach((q, index) => {
                 let cleanQ = q.replace(/^((س\s*)?[\d٠-٩]+[\-\.\)]\s*)/, '');
+                let numDisplay = `<span style="display:inline-block">${index + 1}</span><span style="display:inline-block; margin-right:2px;">-</span>`;
                 
                 if(formatType === 'essay') {
-                    html += `<div>${index + 1}- ${cleanQ}</div><div><br><br><br></div>`;
+                    html += `<div>${numDisplay} ${cleanQ}</div><div><br><br><br></div>`;
                 } else {
-                    html += `<div>${index + 1}- ${cleanQ}</div><div><br></div>`;
+                    html += `<div>${numDisplay} ${cleanQ}</div><div><br></div>`;
                 }
             });
         }
@@ -976,8 +973,8 @@
 
     function smartCategorizeQuestions(text) {
         text = text.replace(/(^|\s)(\(\s*(?:[أبجدهوزحطيكلمن]|هـ)\s*\))\s*\n\s*/gm, '$1$2 ');
-        text = text.replace(/(^|\s)[-\\.‑–—−]\s*([أبجدهوزحطيكلمن]|هـ)\s*/g, '$1$2- ');
-        text = text.replace(/(^|\s)([أبجدهوزحطيكلمن]|هـ)\s+[-\\.‑–—−]\s+/g, '$1$2- ');
+        text = text.replace(/(^|\s)[-\\.‑–—−]\s*([أبجدهوزحطيكلمن]|هـ)\s*/g, '$1$2 - ');
+        text = text.replace(/(^|\s)([أبجدهوزحطيكلمن]|هـ)\s+[-\\.‑–—−]\s+/g, '$1$2 - ');
         
         let lines = text.split('\n');
         let currentQ = [];
@@ -1002,21 +999,24 @@
            questions = text.split(/\n\s*\n/).map(q=>q.trim()).filter(q=>q!=='');
         }
 
-        let mcq = [], tf = [], fill = [], essay = [];
+        let mcq = [], tf = [], fill = [], essay = [], match = [];
         const optLetters = '(?:[أبجدهوزحطيكلمن]|هـ)';
-        const mcqPattern = new RegExp(`(?:^|\\s)(?:[-\\.‑–—−]\\s*${optLetters}|${optLetters}\\s*[-\\.‑–—−]|\\(\\s*${optLetters}\\s*\\))`);
+        const mcqPattern = new RegExp(`(?:^|\\s)(?:[-\\.‑–—−]\\s*${optLetters}|${optLetters}\\s*[-\\.‑–—−]|\\(\\s*${optLetters}\\s*\\)|${optLetters}\\s*-\\s*)`);
 
         questions.forEach(q => {
             let singleLine = q.replace(/\n/g, ' '); 
             
-            if (/(\(\s*\)|\(\s*صح\s*\)|\(\s*خطأ\s*\)|\(\s*x\s*\)|\(\s*√\s*\))/i.test(singleLine) || singleLine.includes('صح أم خطأ') || singleLine.includes('صح أو خطأ')) {
+            if (/(\(\s*\)|\(\s*صح\s*\)|\(\s*خطأ\s*\)|\(\s*x\s*\)|\(\s*√\s*\))/i.test(singleLine) || singleLine.includes('صح أم خطأ') || singleLine.includes('صح أو خطأ') || singleLine.includes('صح ام خطا')) {
                 tf.push(q);
             }
-            else if (mcqPattern.test(singleLine) && (singleLine.includes('ب-') || singleLine.includes('ب.') || singleLine.includes('(ب)') || singleLine.includes(' ب '))) {
+            else if (mcqPattern.test(singleLine) && (singleLine.includes('ب-') || singleLine.includes('ب.') || singleLine.includes('(ب)') || singleLine.includes(' ب ') || singleLine.includes('ب -'))) {
                 mcq.push(q);
             }
             else if (/\.{3,}/.test(singleLine) || /_{3,}/.test(singleLine)) {
                 fill.push(q);
+            }
+            else if (singleLine.includes('صل ') || singleLine.includes('زاوج') || (singleLine.includes('-') && singleLine.includes('='))) {
+                match.push(q);
             }
             else {
                 if(q.length > 10) essay.push(q);
@@ -1032,10 +1032,11 @@
 
         appendVal('genMcqText', mcq);
         appendVal('genTfText', tf);
+        appendVal('genMatchText', match);
         appendVal('genFillText', fill);
         appendVal('genEssayText', essay);
 
-        showModal('تحليل البنك الذكي', `تم استخراج وتصنيف الأسئلة بنجاح:\n\n- ${mcq.length} سؤال اختيارات.\n- ${tf.length} سؤال صح وخطأ.\n- ${fill.length} سؤال إكمال فراغ.\n- ${essay.length} سؤال مقالي.\n\nحدد الآن العدد المطلوب من كل قسم واضغط على التوليد!`);
+        showModal('تحليل البنك الذكي', `تم استخراج وتصنيف الأسئلة بنجاح:\n\n- ${mcq.length} سؤال اختيارات.\n- ${tf.length} سؤال صح وخطأ.\n- ${match.length} سؤال توصيل.\n- ${fill.length} سؤال إكمال فراغ.\n- ${essay.length} سؤال مقالي.\n\nحدد الآن العدد المطلوب من كل قسم واضغط على التوليد!`);
     }
 
     document.getElementById('generateBtn').addEventListener('click', () => {
@@ -1118,7 +1119,6 @@
         
         let lines = rawText.split(/\r?\n|\r/);
         
-        // دالة نقية وآمنة جداً تضيف علامة مخفية بنهاية السطر لحبس النقاط في مكانها العربي الصحيح
         const vf = id => {
             let val = v(id);
             if (!val) return '';
@@ -1153,9 +1153,9 @@
                 let itemWidth = '100%';
                 if (optionsLayoutChoice === 'auto') {
                     let maxLen = Math.max(...currentOptionsBuffer.map(o => o.rawText.length));
-                    if (maxLen <= 15) itemWidth = '24%';       
+                    if (maxLen <= 15) itemWidth = '24%';        
                     else if (maxLen <= 35) itemWidth = '49%';  
-                    else itemWidth = '100%';                   
+                    else itemWidth = '100%';                    
                 } else if (optionsLayoutChoice === 'two') {
                     itemWidth = '49%';
                 } else if (optionsLayoutChoice === 'one') {
@@ -1164,9 +1164,11 @@
                     itemWidth = '24%';
                 }
 
-                // استخدمنا (float: right) لتخطي عيوب مكتبة PDF مع الـ Flexbox والتأكد من ترتيب الخيارات من اليمين لليسار دائماً
                 let rowHtml = currentOptionsBuffer.map(opt => {
-                    let letterDisplay = optFormatChoice === 'bracket' ? `&#xFF08;${opt.letter}&#xFF09;` : `${opt.letter}-`;
+                    // استخدام span لضمان عدم انعكاس الشرطة مع الحرف أو القوس
+                    let letterDisplay = optFormatChoice === 'bracket' 
+                        ? `&#xFF08;${opt.letter}&#xFF09;` 
+                        : `<span style="display:inline-block">${opt.letter}</span><span style="display:inline-block; margin-right: 2px;">-</span>`;
 
                     return `<div class="${opt.isCorrect ? 'correct-answer-bg' : ''}" dir="rtl" style="float: right; width: ${itemWidth}; padding: 2px 4px 4px 8px; box-sizing: border-box; font-family: ${fB}; font-size: ${sO}px; font-weight: 600; color: #000; text-align: right; overflow: hidden;">
                                 <span style="font-weight:bold; margin-left:4px; float:right;">${letterDisplay}</span>
@@ -1263,10 +1265,11 @@
                 cleanQ = cleanQ.replace(/\*/g, '<span class="correct-answer-marker" style="display:inline-block; margin:0 3px;">*</span>');
                 cleanQ = protectBrackets(localizeNumbers(cleanQ, numFmt));
                 
+                // استخدام span لضمان عدم انعكاس الشرطة مع الرقم
                 currentQuestionBuffer += `
                     <div dir="rtl" style="border-top: 1.5px dashed #64748b; margin-top: 6px; padding-top: 6px; clear: both; text-align: right; overflow: hidden;">
                         <b style="color: #000; font-family: ${fB}; font-size: ${sQ}px; font-weight: 700; float: right; margin-left: 4px;">
-                            ${localizeNumbers(questionCounter, numFmt)}-
+                            <span style="display:inline-block">${localizeNumbers(questionCounter, numFmt)}</span><span style="display:inline-block; margin-right: 2px;">-</span>
                         </b>
                         <b style="color: #000; font-family: ${fB}; font-size: ${sQ}px; font-weight: 700; display: block; overflow: hidden;">
                             ${cleanQ}
@@ -1318,7 +1321,6 @@
 
         const showTrainer = document.getElementById('toggleHeaderTrainer').checked;
 
-        // استخدمنا هنا (dir="ltr") للجداول بشكل متعمد كخدعة بصرية لمنع مكتبة PDF من قلب الأعمدة
         let html = `
         <table class="header-table" dir="ltr" style="width: 100%; border-bottom: 2px solid #1e3a8a; margin-bottom: 6px; border-collapse: collapse; font-family: ${fH} !important;">
             <tr>
@@ -1415,7 +1417,6 @@
         loadLibraryUI(); 
     };
 
-    // استعادة دالة التصدير الأصلية والمباشرة بعد التغلب على عيوبها في العربية
     window.exportPDF = function() { 
         showModal("جاري المعالجة", "يتم الآن تجهيز ملف الـ PDF... يرجى الانتظار ثوانٍ معدودة.");
         
