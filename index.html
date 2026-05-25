@@ -212,17 +212,40 @@
                     <i class="fa-solid fa-chevron-down text-[10px]"></i>
                 </button>
                 <div id="headerSettings" class="space-y-3 pt-2">
-                    <div class="grid grid-cols-2 gap-2">
-                        <input type="text" id="hR1" placeholder="المملكة العربية السعودية" class="p-2 text-xs bg-slate-50 border rounded-lg">
-                        <input type="text" id="hL1" placeholder="المادة: ..........." class="p-2 text-xs bg-slate-50 border rounded-lg">
-                        <input type="text" id="hR2" placeholder="وزارة التعليم" class="p-2 text-xs bg-slate-50 border rounded-lg">
-                        <input type="text" id="hL2" placeholder="الصف: ..........." class="p-2 text-xs bg-slate-50 border rounded-lg">
-                        <input type="text" id="hEduDept" placeholder="إدارة التعليم" value="إدارة تعليم ..............." class="p-2 text-xs bg-slate-50 border rounded-lg">
-                        <input type="text" id="hSchool" placeholder="المدرسة" value="مدرسة: ......................." class="p-2 text-xs bg-slate-50 border rounded-lg">
-                        <input type="text" id="hTime" placeholder="الزمن" value="الزمن: ..........." class="p-2 text-xs bg-slate-50 border rounded-lg">
-                        <input type="text" id="hDate" placeholder="التاريخ" value="التاريخ: ..... / ..... / 144 هـ" class="p-2 text-xs bg-slate-50 border rounded-lg">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Right Side (جهة اليمين) -->
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2 shadow-sm">
+                            <div class="flex justify-between items-center mb-2 border-b border-slate-200 pb-2">
+                                <h4 class="text-xs font-bold text-slate-700"><i class="fa-solid fa-align-right text-blue-500 ml-1"></i> بيانات جهة اليمين</h4>
+                                <select id="alignRightSide" class="text-[10px] p-1.5 border border-slate-300 rounded-lg bg-white font-bold outline-none">
+                                    <option value="right">محاذاة لليمين</option>
+                                    <option value="center">توسيط النص</option>
+                                    <option value="left">محاذاة لليسار</option>
+                                </select>
+                            </div>
+                            <input type="text" id="hR1" placeholder="المملكة العربية السعودية" class="w-full p-2 text-xs bg-white border border-slate-200 rounded-lg">
+                            <input type="text" id="hR2" placeholder="وزارة التعليم" class="w-full p-2 text-xs bg-white border border-slate-200 rounded-lg">
+                            <input type="text" id="hEduDept" placeholder="إدارة التعليم" value="إدارة تعليم ..............." class="w-full p-2 text-xs bg-white border border-slate-200 rounded-lg">
+                            <input type="text" id="hSchool" placeholder="المدرسة" value="مدرسة: ......................." class="w-full p-2 text-xs bg-white border border-slate-200 rounded-lg">
+                        </div>
+
+                        <!-- Left Side (جهة اليسار) -->
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2 shadow-sm">
+                            <div class="flex justify-between items-center mb-2 border-b border-slate-200 pb-2">
+                                <h4 class="text-xs font-bold text-slate-700"><i class="fa-solid fa-align-left text-blue-500 ml-1"></i> بيانات جهة اليسار</h4>
+                                <select id="alignLeftSide" class="text-[10px] p-1.5 border border-slate-300 rounded-lg bg-white font-bold outline-none">
+                                    <option value="right">محاذاة لليمين</option>
+                                    <option value="center">توسيط النص</option>
+                                    <option value="left">محاذاة لليسار</option>
+                                </select>
+                            </div>
+                            <input type="text" id="hL1" placeholder="المادة: ..........." class="w-full p-2 text-xs bg-white border border-slate-200 rounded-lg">
+                            <input type="text" id="hL2" placeholder="الصف: ..........." class="w-full p-2 text-xs bg-white border border-slate-200 rounded-lg">
+                            <input type="text" id="hTime" placeholder="الزمن" value="الزمن: ..........." class="w-full p-2 text-xs bg-white border border-slate-200 rounded-lg">
+                            <input type="text" id="hDate" placeholder="التاريخ" value="التاريخ: ..... / ..... / 144 هـ" class="w-full p-2 text-xs bg-white border border-slate-200 rounded-lg">
+                        </div>
                     </div>
-                    <input type="text" id="examTitle" placeholder="اختبار الفصل الدراسي ..." class="w-full p-2 text-xs font-bold text-center bg-blue-50 border border-blue-100 rounded-lg">
+                    <input type="text" id="examTitle" placeholder="اختبار الفصل الدراسي ..." class="w-full p-2 text-xs font-bold text-center bg-blue-50 border border-blue-100 rounded-lg mt-2">
                     
                     <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 mt-2">
                         <div class="flex items-center gap-4 mb-3 pb-2 border-b border-slate-200">
@@ -558,24 +581,47 @@
         loadHeaderDefaults();
     };
 
-    function protectBrackets(text) {
-        if (!text) return text;
-        return text.replace(/\(/g, '&#xFF08;').replace(/\)/g, '&#xFF09;');
-    }
-
-    function localizeNumbers(htmlString, format) {
+    function formatRTLText(htmlString, format) {
         if (!htmlString) return htmlString;
-        if (format !== 'ar') return htmlString;
         
         const arabicNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
         let temp = document.createElement('div');
         temp.innerHTML = htmlString;
         
         function walk(node) {
-            if (node.nodeType === 3) {
-                node.nodeValue = node.nodeValue.replace(/[0-9]/g, w => arabicNumbers[+w]);
-            } else if (node.nodeType === 1) {
-                for (let child of node.childNodes) walk(child);
+            if (node.nodeType === 3) { // Text node
+                let text = node.nodeValue;
+                
+                if (format === 'ar') {
+                    text = text.replace(/[0-9]/g, w => arabicNumbers[+w]);
+                }
+                
+                text = text.replace(/\(/g, '\u200F(\u200F').replace(/\)/g, '\u200F)\u200F');
+                text = text.replace(/:/g, '\u200F:\u200F');
+                text = text.replace(/\./g, '\u200F.\u200F');
+                if (/(\.{2,}|\_{2,}|-{2,})/.test(text)) {
+                    let parts = text.split(/(\.{2,}|\_{2,}|-{2,})/g);
+                    let frag = document.createDocumentFragment();
+                    parts.forEach(part => {
+                        if (/^(\.{2,}|\_{2,}|-{2,})$/.test(part)) {
+                            let span = document.createElement('span');
+                            span.style.display = 'inline-block';
+                            span.style.direction = 'ltr';
+                            span.style.unicodeBidi = 'bidi-override';
+                            span.textContent = part;
+                            frag.appendChild(document.createTextNode('\u200F'));
+                            frag.appendChild(span);
+                            frag.appendChild(document.createTextNode('\u200F'));
+                        } else if (part) {
+                            frag.appendChild(document.createTextNode(part));
+                        }
+                    });
+                    node.parentNode.replaceChild(frag, node);
+                } else {
+                    node.nodeValue = text;
+                }
+            } else if (node.nodeType === 1) { // Element node
+                for (let child of Array.from(node.childNodes)) walk(child);
             }
         }
         walk(temp);
@@ -588,7 +634,7 @@
         const tInputs = ['hR1', 'hL1', 'hR2', 'hL2', 'hEduDept', 'hSchool', 'hTime', 'hDate', 'examTitle', 'hStudentName', 'hAcademicNum', 'hSection', 'hHeaderTrainerName', 'hTeacherTitle', 'hTeacherName', 'szHeader', 'szStudent', 'szSection', 'szQuestion', 'szOption', 'marginTop', 'marginRight', 'marginBottom', 'marginLeft'];
         tInputs.forEach(id => { const el = document.getElementById(id); if(el) settings.textInputs[id] = el.value; });
 
-        const sInputs = ['fntHeader', 'fntBody', 'optionsLayout', 'numFormat', 'optFormat'];
+        const sInputs = ['fntHeader', 'fntBody', 'optionsLayout', 'numFormat', 'optFormat', 'alignRightSide', 'alignLeftSide'];
         sInputs.forEach(id => { const el = document.getElementById(id); if(el) settings.selectInputs[id] = el.value; });
 
         const cInputs = ['toggleHeaderTrainer', 'showFooterSettings'];
@@ -1102,9 +1148,8 @@
                 }
                 cellHtml = cellHtml.replace(/\*/g, '<span class="correct-answer-marker" style="display:inline-block; margin:0 3px;">*</span>');
                 
-                cellHtml = protectBrackets(cellHtml);
-                cellHtml = localizeNumbers(cellHtml, numFmt);
-                cell.innerHTML = cellHtml;
+                cellHtml = formatRTLText(cellHtml, numFmt);
+                cell.innerHTML = `<div dir="rtl" style="unicode-bidi: isolate;">${cellHtml}</div>`;
             });
             tables.push(table.outerHTML);
             const marker = document.createTextNode(`\n___SYS_TABLE_${i}___\n`);
@@ -1119,10 +1164,16 @@
         
         let lines = rawText.split(/\r?\n|\r/);
         
-        const vf = id => {
+        // دالة مساعدة لتنسيق النصوص الثابتة (الترويسة وبيانات الطالب)
+        const formatText = (text) => {
+            if (!text) return '';
+            return formatRTLText(text, numFmt) + '\u200F';
+        };
+
+        const lineVal = (id, align) => {
             let val = v(id);
             if (!val) return '';
-            return protectBrackets(localizeNumbers(val, numFmt)) + '&#x061C;'; 
+            return `<div dir="rtl" style="unicode-bidi: isolate; text-align: ${align || 'right'};">${formatText(val)}</div>`;
         };
 
         const fH = v('fntHeader') || "'AdvertisingBold', 'A_AdvertisingBold', Arial, sans-serif";
@@ -1133,6 +1184,9 @@
         const sQ = v('szQuestion') || "15";
         const sO = v('szOption') || "16";
         
+        const alignR = v('alignRightSide') || 'right';
+        const alignL = v('alignLeftSide') || 'right';
+
         const mT = v('marginTop') || "8";
         const mR = v('marginRight') || "12";
         const mB = v('marginBottom') || "8";
@@ -1165,14 +1219,13 @@
                 }
 
                 let rowHtml = currentOptionsBuffer.map(opt => {
-                    // استخدام span لضمان عدم انعكاس الشرطة مع الحرف أو القوس
                     let letterDisplay = optFormatChoice === 'bracket' 
-                        ? `&#xFF08;${opt.letter}&#xFF09;` 
+                        ? `\u200F(${opt.letter})\u200F` 
                         : `<span style="display:inline-block">${opt.letter}</span><span style="display:inline-block; margin-right: 2px;">-</span>`;
 
-                    return `<div class="${opt.isCorrect ? 'correct-answer-bg' : ''}" dir="rtl" style="float: right; width: ${itemWidth}; padding: 2px 4px 4px 8px; box-sizing: border-box; font-family: ${fB}; font-size: ${sO}px; font-weight: 600; color: #000; text-align: right; overflow: hidden;">
+                    return `<div class="${opt.isCorrect ? 'correct-answer-bg' : ''}" dir="rtl" style="float: right; width: ${itemWidth}; padding: 2px 4px 4px 8px; box-sizing: border-box; font-family: ${fB}; font-size: ${sO}px; font-weight: 600; color: #000; text-align: right; overflow: hidden; unicode-bidi: isolate;">
                                 <span style="font-weight:bold; margin-left:4px; float:right;">${letterDisplay}</span>
-                                <span style="display:block; overflow:hidden; word-break: break-word;">${protectBrackets(localizeNumbers(opt.text || '&nbsp;', numFmt))}</span>
+                                <span style="display:block; overflow:hidden; word-break: break-word;">${formatRTLText(opt.text || '&nbsp;', numFmt)}</span>
                             </div>`;
                 }).join('');
                 
@@ -1232,7 +1285,7 @@
                     
                     currentOptionsBuffer.push({
                         letter: letterRaw,
-                        text: textPart,
+                        text: textPart.replace(/:/g, '&rlm;:&rlm;'), // حماية النقطتين في الخيارات
                         isCorrect: isCorrect,
                         rawText: m[2].replace(/<[^>]*>?/gm, '').trim()
                     });
@@ -1253,8 +1306,8 @@
             if (isHeader) {
                 flushBuffer();
                 questionCounter = 1;
-                let secText = protectBrackets(localizeNumbers(safeLine.replace(/\*/g, '<span class="correct-answer-marker">*</span>'), numFmt));
-                formattedText += `<div dir="rtl" style="background-color: #f8fafc; border-right: 4px solid #1e3a8a; border-bottom: 1px solid #e2e8f0; padding: 4px 8px; margin-top: 6px; margin-bottom: 4px; font-weight: 800; font-family: ${fB}; font-size: ${sSec}px; color: #000; border-radius: 3px; page-break-inside: avoid; clear: both; text-align: right;">${secText}</div>`;
+                let secText = formatRTLText(safeLine.replace(/\*/g, '<span class="correct-answer-marker">*</span>'), numFmt);
+                formattedText += `<div dir="rtl" style="background-color: #f8fafc; border-right: 4px solid #1e3a8a; border-bottom: 1px solid #e2e8f0; padding: 4px 8px; margin-top: 6px; margin-bottom: 4px; font-weight: 800; font-family: ${fB}; font-size: ${sSec}px; color: #000; border-radius: 3px; page-break-inside: avoid; clear: both; text-align: right; unicode-bidi: isolate;">${secText}</div>`;
             } 
             else if (isQuestion) {
                 flushBuffer();
@@ -1263,13 +1316,12 @@
                 let cleanQ = tLine.replace(qRegex, '').trim();
                 if (cleanQ.startsWith('-') || cleanQ.startsWith('.')) cleanQ = cleanQ.substring(1).trim();
                 cleanQ = cleanQ.replace(/\*/g, '<span class="correct-answer-marker" style="display:inline-block; margin:0 3px;">*</span>');
-                cleanQ = protectBrackets(localizeNumbers(cleanQ, numFmt));
+                cleanQ = formatRTLText(cleanQ, numFmt);
                 
-                // استخدام span لضمان عدم انعكاس الشرطة مع الرقم
                 currentQuestionBuffer += `
-                    <div dir="rtl" style="border-top: 1.5px dashed #64748b; margin-top: 6px; padding-top: 6px; clear: both; text-align: right; overflow: hidden;">
+                    <div dir="rtl" style="border-top: 1.5px dashed #64748b; margin-top: 6px; padding-top: 6px; clear: both; text-align: right; overflow: hidden; unicode-bidi: isolate;">
                         <b style="color: #000; font-family: ${fB}; font-size: ${sQ}px; font-weight: 700; float: right; margin-left: 4px;">
-                            <span style="display:inline-block">${localizeNumbers(questionCounter, numFmt)}</span><span style="display:inline-block; margin-right: 2px;">-</span>
+                            <span style="display:inline-block">${formatRTLText(questionCounter.toString(), numFmt)}</span><span style="display:inline-block; margin-right: 2px;">-</span>
                         </b>
                         <b style="color: #000; font-family: ${fB}; font-size: ${sQ}px; font-weight: 700; display: block; overflow: hidden;">
                             ${cleanQ}
@@ -1295,8 +1347,8 @@
                     
                 } else {
                     flushOptions(); 
-                    let textLine = protectBrackets(localizeNumbers(safeLine.replace(/\*/g, '<span class="correct-answer-marker">*</span>'), numFmt));
-                    let outHtml = `<div dir="rtl" style="padding-right: 25px; margin-bottom: 2px; color: #000; font-family: ${fB}; font-size: ${sQ}px; font-weight: 500; clear: both; text-align: right;">${textLine}</div>`;
+                    let textLine = formatRTLText(safeLine.replace(/\*/g, '<span class="correct-answer-marker">*</span>'), numFmt);
+                    let outHtml = `<div dir="rtl" style="padding-right: 25px; margin-bottom: 2px; color: #000; font-family: ${fB}; font-size: ${sQ}px; font-weight: 500; clear: both; text-align: right; unicode-bidi: isolate;">${textLine}</div>`;
                     
                     if (isBuildingQuestion) currentQuestionBuffer += outHtml;
                     else formattedText += outHtml;
@@ -1313,9 +1365,9 @@
         if (showFooter) {
             let sigHtml = signatureBase64 ? `<img src="${signatureBase64}" style="max-height: 40px; display:inline-block; vertical-align: middle; margin-right: 10px;">` : '';
             footerHtml = `
-            <div dir="rtl" style="margin-top: 10px; border-top: 2px solid #1e3a8a; padding-top: 8px; text-align: center; font-weight: bold; font-family: ${fB}; font-size: ${sH}px; page-break-inside: avoid; clear: both; color: #000;">
+            <div dir="rtl" style="margin-top: 10px; border-top: 2px solid #1e3a8a; padding-top: 8px; text-align: center; font-weight: bold; font-family: ${fB}; font-size: ${sH}px; page-break-inside: avoid; clear: both; color: #000; unicode-bidi: isolate;">
                 <p style="color: #1e3a8a; margin-bottom: 4px;"><i class="fa-solid fa-check-circle"></i> انتهت الأسئلة، مع تمنياتي لكم بالتوفيق والنجاح</p>
-                ${(teacherTitle || teacherName || signatureBase64) ? `<div style="font-size: ${sH}px; display: flex; align-items: center; justify-content: center;">${teacherTitle} <span style="font-size: ${parseInt(sH)+1}px; margin-right: 10px; margin-left: 5px;">${teacherName}</span> ${sigHtml}</div>` : ''}
+                ${(teacherTitle || teacherName || signatureBase64) ? `<div style="font-size: ${sH}px; display: flex; align-items: center; justify-content: center;">${formatText(teacherTitle)} <span style="font-size: ${parseInt(sH)+1}px; margin-right: 10px; margin-left: 5px;">${formatText(teacherName)}</span> ${sigHtml}</div>` : ''}
             </div>`;
         }
 
@@ -1324,15 +1376,15 @@
         let html = `
         <table class="header-table" dir="ltr" style="width: 100%; border-bottom: 2px solid #1e3a8a; margin-bottom: 6px; border-collapse: collapse; font-family: ${fH} !important;">
             <tr>
-                <td dir="rtl" style="width:33%; text-align:right; vertical-align:top; font-size:${sH}px; font-weight:bold; line-height:1.4; color:#000; border: none;">
-                    ${vf('hL1')}<br>${vf('hL2')}<br>${vf('hTime')}<br>${vf('hDate')}
+                <td style="width:33%; vertical-align:top; font-size:${sH}px; font-weight:bold; line-height:1.4; color:#000; border: none;">
+                    ${lineVal('hL1', alignL)}${lineVal('hL2', alignL)}${lineVal('hTime', alignL)}${lineVal('hDate', alignL)}
                 </td>
-                <td dir="rtl" style="width:34%; text-align:center; vertical-align:top; border: none;">
+                <td style="width:34%; text-align:center; vertical-align:top; border: none;">
                     <img src="${logoBase64}" style="height:90px; max-width:100%; object-fit:contain; margin: 0 auto;">
-                    <div style="margin-top: 4px; font-size:${parseInt(sH)+1}px; font-weight:900; color:#000;">${localizeNumbers(v('examTitle'), numFmt)}</div>
+                    <div style="margin-top: 4px; font-size:${parseInt(sH)+1}px; font-weight:900; color:#000; unicode-bidi: isolate;" dir="rtl">${formatText(v('examTitle'))}</div>
                 </td>
-                <td dir="rtl" style="width:33%; text-align:right; vertical-align:top; font-size:${sH}px; font-weight:bold; line-height:1.4; color:#000; border: none;">
-                    ${vf('hR1')}<br>${vf('hR2')}<br>${vf('hEduDept')}<br>${vf('hSchool')}
+                <td style="width:33%; vertical-align:top; font-size:${sH}px; font-weight:bold; line-height:1.4; color:#000; border: none;">
+                    ${lineVal('hR1', alignR)}${lineVal('hR2', alignR)}${lineVal('hEduDept', alignR)}${lineVal('hSchool', alignR)}
                 </td>
             </tr>
         </table>
@@ -1341,11 +1393,11 @@
             <div style="border:2px solid #000; width:45px; height:45px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink: 0; background-color: #fff; margin-right: 2px; margin-left: 15px;">
                 <div style="width: 25px; border-top: 1.5px solid #000;"></div>
             </div>
-            <div style="flex: 1; display: flex; justify-content: space-between; align-items: center;">
-                ${showTrainer ? `<div dir="rtl" style="text-align: left; flex: 1.5;">${vf('hHeaderTrainerName')}</div>` : ''}
-                <div dir="rtl" style="text-align: center; flex: 1;">${vf('hSection')}</div>
-                <div dir="rtl" style="text-align: center; flex: 1.5;">${vf('hAcademicNum')}</div>
-                <div dir="rtl" style="text-align: right; flex: 2;">${vf('hStudentName')}</div>
+            <div style="flex: 1; display: flex; justify-content: space-between; align-items: center;" dir="rtl">
+                <div style="text-align: right; flex: 2.5; unicode-bidi: isolate;">${formatText(v('hStudentName'))}</div>
+                <div style="text-align: right; flex: 1.5; unicode-bidi: isolate;">${formatText(v('hAcademicNum'))}</div>
+                <div style="text-align: right; flex: 1; unicode-bidi: isolate;">${formatText(v('hSection'))}</div>
+                ${showTrainer ? `<div style="text-align: right; flex: 1.5; unicode-bidi: isolate;">${formatText(v('hHeaderTrainerName'))}</div>` : ''}
             </div>
         </div>
 
